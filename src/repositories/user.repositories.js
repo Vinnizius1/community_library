@@ -26,9 +26,25 @@ function createUserRepository(newUser) {
         if (err) {
           reject(err);
         } else {
+          /*
+            Boas práticas de mercado e segurança:
+            Ao resolver a Promise, é crucial não retornar o objeto 'newUser' inteiro
+            (usando "...newUser"), pois ele contém a senha do usuário.
+            Senhas, mesmo que criptografadas (hash), nunca devem ser expostas ou
+            trafegar em respostas de APIs ou logs após a autenticação/criação.
+
+            A prática correta é criar um novo objeto contendo apenas as
+            informações públicas e seguras do usuário, como id, username e email,
+            evitando o vazamento de dados sensíveis.
+          */
           resolve({
             message: "Usuário criado com sucesso!",
-            userId: this.lastID,
+            user: {
+              id: this.lastID,
+              username: newUser.username,
+              email: newUser.email,
+              avatar: newUser.avatar,
+            },
           });
         }
       },
