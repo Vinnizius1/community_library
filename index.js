@@ -14,13 +14,8 @@ const users = [];
 }); */
 
 /* POST */
-app.post("/users", (req, res) => {
-  // "body" é o corpo da requisição com os dados enviados pelo cliente.
-  const body = req.body;
-  users.push(body);
-  // Precisa enviar o "send" para finalizar a requisição!
-  res.status(201).send("Usuário criado com sucesso!");
-});
+// Importamos a função createUserController do controller para separar as responsabilidades
+app.post("/users", createUserController(req, res));
 
 /* GET */
 app.get("/users", (req, res) => {
