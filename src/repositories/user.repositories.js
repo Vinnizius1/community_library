@@ -1,55 +1,46 @@
 import db from "../config/database.js";
 
-/* CRIAÇÃO DE TABELA */
-db.run(`
+/* 
+   TABELA NO POSTGRES 
+   Mudamos INTEGER PRIMARY KEY AUTOINCREMENT para SERIAL PRIMARY KEY
+*/
+db.query(
+  `
     CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    avatar  TEXT
+      id SERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      avatar TEXT
     ) 
-`);
+`,
+).catch((err) => console.error("Erro ao criar tabela:", err));
 
-/* Não "inserimos" id pois ele é AUTOINCREMENT */
-function createUserRepository(newUser) {
-  return new Promise((resolve, reject) => {
-    // Desestruturação do objeto "newUser"
-    const { username, email, password, avatar } = newUser;
+async function createUserRepository(newUser) {
+  const { username, email, password, avatar } = newUser;
 
-    // ".run()" recebe a query e a função de callback com "err"
-    db.run(
-      `INSERT INTO users (username, email, password, avatar) 
-       VALUES (?, ?, ?, ?)`,
-      [username, email, password, avatar],
-      function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          /*
-            Boas práticas de mercado e segurança:
-            Ao resolver a Promise, é crucial não retornar o objeto 'newUser' inteiro
-            (usando "...newUser"), pois ele contém a senha do usuário.
-            Senhas, mesmo que criptografadas (hash), nunca devem ser expostas ou
-            trafegar em respostas de APIs ou logs após a autenticação/criação.
+  // No Postgres usamos db.query (do pacote 'pg') e retornamos os dados com RETURNING
+  const query = `
+    INSERT INTO users (username, email, password, avatar) 
+    VALUES ($1, $2, $3, $4) 
+    RETURNING id, username, email, avatar
+  `;
 
-            A prática correta é criar um novo objeto contendo apenas as
-            informações públicas e seguras do usuário, como id, username e email,
-            evitando o vazamento de dados sensíveis.
-          */
-          resolve({
-            message: "Usuário criado com sucesso!",
-            user: {
-              id: this.lastID,
-              username: newUser.username,
-              email: newUser.email,
-              avatar: newUser.avatar,
-            },
-          });
-        }
-      },
-    );
-  });
+  const values = [username, email, password, avatar];
+
+  try {
+    const result = await db.query(query, values);
+
+    // O Postgres retorna um objeto onde os dados ficam em result.rows
+    const createdUser = result.rows[0];
+
+    return {
+      message: "Usuário criado com sucesso!",
+      user: createdUser,
+    };
+  } catch (err) {
+    throw err; // O Service vai capturar esse erro
+  }
 }
 
 export default { createUserRepository };
