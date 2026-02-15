@@ -6,7 +6,7 @@
  * (`userService`) que fará a lógica de criação, e então enviar uma resposta
  * ao cliente com o resultado da operação.
  */
-import userService from "../services/user.services.js";
+import userService from "../service/user.services.js";
 
 async function createUserController(req, res) {
   const newUser = req.body;
@@ -17,8 +17,18 @@ async function createUserController(req, res) {
     // Usamos .json() para garantir o header Content-Type correto.
     res.status(201).json(serviceResponse);
   } catch (error) {
-    // Padronização de erro em JSON
-    res.status(400).json({ message: error.message });
+    // Log do erro real no console para o desenvolvedor debugar (não envie isso pro cliente!)
+    console.error(error);
+
+    // Se for o erro conhecido de regra de negócio (duplicidade), retornamos 409 (Conflict) ou 400
+    if (
+      error.message === "Este e-mail já está sendo utilizado por outro usuário."
+    ) {
+      return res.status(409).json({ message: error.message });
+    }
+
+    // Para qualquer outro erro desconhecido (banco de dados, bugs), retornamos 500 e uma mensagem genérica
+    return res.status(500).json({ message: "Erro interno do servidor." });
   }
 }
 
