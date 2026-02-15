@@ -11,6 +11,7 @@
 
 // Regras de negócio para criação de usuário
 import userRepositories from "../repositories/user.repositories.js";
+import { AppError } from "../errors/AppError.js";
 
 /**
  * SERVIÇO DE CRIAÇÃO DE USUÁRIO
@@ -28,7 +29,11 @@ async function createUserService(newUser) {
        Lançar um erro aqui interrompe a execução. 
        O Controller vai capturar esse erro no 'catch'.
     */
-    throw new Error("Este e-mail já está sendo utilizado por outro usuário.");
+    // 409 Conflict: O recurso já existe
+    throw new AppError(
+      "Este e-mail já está sendo utilizado por outro usuário.",
+      409,
+    );
   }
 
   // 2. ORQUESTRAÇÃO: Se passou pela regra, manda para o banco

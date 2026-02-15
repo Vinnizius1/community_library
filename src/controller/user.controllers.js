@@ -7,6 +7,7 @@
  * ao cliente com o resultado da operação.
  */
 import userService from "../service/user.services.js";
+import { AppError } from "../errors/AppError.js";
 
 async function createUserController(req, res) {
   const newUser = req.body;
@@ -20,11 +21,9 @@ async function createUserController(req, res) {
     // Log do erro real no console para o desenvolvedor debugar (não envie isso pro cliente!)
     console.error(error);
 
-    // Se for o erro conhecido de regra de negócio (duplicidade), retornamos 409 (Conflict) ou 400
-    if (
-      error.message === "Este e-mail já está sendo utilizado por outro usuário."
-    ) {
-      return res.status(409).json({ message: error.message });
+    // Verifica se o erro é uma instância da nossa classe personalizada AppError
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
     }
 
     // Para qualquer outro erro desconhecido (banco de dados, bugs), retornamos 500 e uma mensagem genérica
