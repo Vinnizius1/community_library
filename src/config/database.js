@@ -1,25 +1,16 @@
-/* CÓDIGO ANTIGO:
-
-import sqlite3 from "sqlite3";
-
-const db = new sqlite3.Database("library_db.sqlite", (err) => {
-  if (err) {
-    console.error("Error opening database:", err.message);
-  } else {
-    console.log("Connected to the SQLite database.");
-  }
-});
-
-export default db; */
-
-// CÓDIGO NOVO:
-
 import pg from "pg";
 import "dotenv/config";
+// "dotenv/config" é uma prática comum para carregar variáveis de ambiente do arquivo .env,
+// mantendo as credenciais do banco seguras e fora do código-fonte.
+// É o que chamamos de importação por efeito colateral (side-effect import):
+// você não está importando um valor para usar depois,
+// está importando um script para que ele seja executado imediatamente.
 
 const { Pool } = pg;
+// Desestruturando o Pool do módulo 'pg' para criar um pool de conexões.
+// Com o Pool, o driver 'pg' gerencia automaticamente as conexões,
+// reutilizando-as para melhorar a performance da aplicação.
 
-// O Pool gerencia várias conexões ao banco de dados automaticamente
 const db = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,

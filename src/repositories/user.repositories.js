@@ -29,6 +29,7 @@ db.query(
  * @param {Object} newUser - Objeto contendo dados do usuário.
  * @returns {Promise<Object>} - Retorna o usuário criado (sem a senha).
  */
+
 async function createUserRepository(newUser) {
   const { username, email, password, avatar } = newUser;
 
@@ -71,13 +72,13 @@ async function createUserRepository(newUser) {
   }
 }
 
-//
+// Função para encontrar um usuário por email (usada para validação de duplicidade)
 async function findUserByEmailRepository(email) {
   const query = `
     SELECT * FROM users WHERE email = $1
   `;
   const result = await db.query(query, [email]);
-  return result.rows[0]; // Retorna o usuário encontrado ou undefined
+  return result.rows[0]; // Retorna o usuário encontrado ou undefined. Se underfined, o Service sabe que pode criar um novo usuário com esse email.
 }
 
 export default { createUserRepository, findUserByEmailRepository };

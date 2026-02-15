@@ -8,7 +8,6 @@
   O seu Service deve saber capturar isso e enviar uma mensagem amigável para o usuário.
 
 */
-import userRepositories from "../repositories/user.repositories.js";
 
 // Regras de negócio para criação de usuário
 import userRepositories from "../repositories/user.repositories.js";

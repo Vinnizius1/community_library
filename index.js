@@ -1,4 +1,5 @@
 import express from "express";
+import userController from "./src/controller/user.controllers.js";
 
 const app = express();
 
@@ -15,7 +16,7 @@ const users = [];
 
 /* POST */
 // Importamos a função createUserController do controller para separar as responsabilidades
-app.post("/users", createUserController(req, res));
+app.post("/users", userController.createUserController);
 
 /* GET */
 app.get("/users", (req, res) => {
