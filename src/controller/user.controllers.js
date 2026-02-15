@@ -12,10 +12,13 @@ async function createUserController(req, res) {
   const newUser = req.body;
 
   try {
-    const user = await userService.createUserService(newUser);
-    res.status(201).send({ user });
+    const serviceResponse = await userService.createUserService(newUser);
+    // O service já retorna um objeto formatado { message, user }, então retornamos ele direto.
+    // Usamos .json() para garantir o header Content-Type correto.
+    res.status(201).json(serviceResponse);
   } catch (error) {
-    res.status(400).send(error.message);
+    // Padronização de erro em JSON
+    res.status(400).json({ message: error.message });
   }
 }
 
