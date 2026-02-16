@@ -1,5 +1,5 @@
 /*
-  A camada de serviço (service layer) é responsável por conter a lógica de negócio da aplicação.
+  A camada de serviço (service layer) é responsável por conter a lógica e REGRAS de negócio da aplicação.
   Ela atua como um intermediário entre a camada de controle (controllers) e a camada de acesso a dados (repositories).
   Essa separação de responsabilidades promove um código mais organizado, testável e de fácil manutenção.
   Aqui acontece a validação de dados, regras de negócio, e a orquestração das chamadas aos repositórios.
@@ -9,9 +9,9 @@
 
 */
 
-// Regras de negócio para criação de usuário
 import userRepositories from "../repositories/user.repositories.js";
 import { AppError } from "../errors/AppError.js";
+import bcrypt from "bcrypt";
 
 /**
  * SERVIÇO DE CRIAÇÃO DE USUÁRIO
@@ -48,10 +48,16 @@ async function createUserService(newUser) {
     );
   }
 
-  // 3. ORQUESTRAÇÃO: Se passou pela regra, manda para o banco
-  const createdUser = await userRepositories.createUserRepository(newUser);
+  // 3. SEGURANÇA: Criptografar a senha (Hash)
+  // O número 10 é o "custo" (salt rounds). Quanto maior, mais seguro e mais lento. 10 é o padrão de mercado.
+  const passwordHash = await bcrypt.hash(password, 10);
 
-  // 4. RETORNO: Dados limpos e prontos para o Controller
+  // 4. ORQUESTRAÇÃO: Cria um novo objeto com a senha criptografada e manda para o banco
+  const newUserWithHash = { ...newUser, password: passwordHash };
+  const createdUser =
+    await userRepositories.createUserRepository(newUserWithHash);
+
+  // 5. RETORNO: Dados limpos e prontos para o Controller
   return createdUser;
 }
 
