@@ -18,9 +18,21 @@ import { AppError } from "../errors/AppError.js";
  * Aqui aplicamos as "Regras de Negócio" antes de tocar no banco.
  */
 async function createUserService(newUser) {
-  const { email } = newUser;
+  const { username, email, password, avatar } = newUser;
 
-  // 1. REGRA DE NEGÓCIO: Verificar se o usuário já existe
+  // 1. VALIDAÇÃO BÁSICA (O que o CodeRabbit sugeriu, mas feito manualmente)
+  if (!username || !email || !password || !avatar) {
+    throw new AppError(
+      "Todos os campos são obrigatórios: username, email, password, avatar.",
+    );
+  }
+
+  if (password.length < 6) {
+    throw new AppError("A senha deve ter pelo menos 6 caracteres.");
+  }
+
+  // 2. REGRA DE NEGÓCIO: Verificar se o usuário já existe
+  // Verifica duplicidade de e-mail
   const userAlreadyExists =
     await userRepositories.findUserByEmailRepository(email);
 
@@ -36,10 +48,10 @@ async function createUserService(newUser) {
     );
   }
 
-  // 2. ORQUESTRAÇÃO: Se passou pela regra, manda para o banco
+  // 3. ORQUESTRAÇÃO: Se passou pela regra, manda para o banco
   const createdUser = await userRepositories.createUserRepository(newUser);
 
-  // 3. RETORNO: Dados limpos e prontos para o Controller
+  // 4. RETORNO: Dados limpos e prontos para o Controller
   return createdUser;
 }
 
