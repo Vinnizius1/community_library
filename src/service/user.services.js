@@ -57,8 +57,8 @@ async function createUserService(newUser) {
   const createdUser =
     await userRepositories.createUserRepository(newUserWithHash);
 
-  // 5. RETORNO: Dados limpos e prontos para o Controller
-  return createdUser;
+  const { password: _, ...userWithoutPassword } = createdUser;
+  return userWithoutPassword;
 }
 
 export default { createUserService };
