@@ -11,9 +11,9 @@ const userSchema = z.object({
     .string()
     .min(3, "Username must have at least 3 characters")
     .max(20),
-  email: z.email("Invalid email address"),
+  email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must have at least 6 characters"),
-  avatar: z.url("Invalid URL").optional(),
+  avatar: z.string().url("Invalid URL").optional(),
 });
 
 // Não exportamos como default porque queremos exatamente este nome (userSchema)
