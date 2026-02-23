@@ -20,16 +20,7 @@ import bcrypt from "bcrypt";
 async function createUserService(newUser) {
   const { username, email, password, avatar } = newUser;
 
-  // 1. VALIDAÇÃO BÁSICA (O que o CodeRabbit sugeriu, mas feito manualmente)
-  if (!username || !email || !password || !avatar) {
-    throw new AppError(
-      "Todos os campos são obrigatórios: username, email, password, avatar.",
-    );
-  }
-
-  if (password.length < 6) {
-    throw new AppError("A senha deve ter pelo menos 6 caracteres.");
-  }
+  // 1. VALIDAÇÃO BÁSICA: Já foi feita pelo Zod no middleware! O código aqui chega limpo.
 
   // 2. REGRA DE NEGÓCIO: Verificar se o usuário já existe
   // Verifica duplicidade de e-mail

@@ -20,7 +20,7 @@ Originalmente proposto com **SQLite**, decidi desafiar-me e evoluir a stack para
 - **PostgreSQL** (`pg`): Banco de dados relacional robusto.
 - **Bcrypt**: Para criptografia segura de senhas.
 - **Dotenv**: Gerenciamento de variáveis de ambiente.
-- **Docker Compose**: Para containerização do banco de dados.
+- **Docker Compose** _(Opcional)_: Para containerização do banco de dados.
 
 ## ⚙️ Funcionalidades (Até o momento)
 
@@ -36,7 +36,52 @@ Originalmente proposto com **SQLite**, decidi desafiar-me e evoluir a stack para
 ### Pré-requisitos
 
 - Node.js
-- PostgreSQL (Instalado localmente ou via Docker)
+- PostgreSQL (via Docker Compose ou instalado localmente)
+
+### 📦 Instalação do Banco de Dados
+
+Escolha uma das opções abaixo:
+
+#### Option A: Using Docker Compose (Recomendado para desenvolvimento)
+
+Os arquivos de configuração já estão inclusos no projeto (`docker-compose.yml`).
+
+**Iniciar o PostgreSQL:**
+
+```bash
+docker-compose up -d
+```
+
+Isso iniciará um container PostgreSQL com as seguintes credenciais padrão:
+
+- **Usuário:** `dev_user`
+- **Senha:** `dev_password`
+- **Banco de Dados:** `community_library`
+- **Porta:** `5432`
+
+**Parar o PostgreSQL:**
+
+```bash
+docker-compose down
+```
+
+**Remover dados persistidos (limpeza completa):**
+
+```bash
+docker-compose down -v
+```
+
+> **Localização:** O arquivo `docker-compose.yml` está na raiz do projeto. Certifique-se de que o Docker está instalado e rodando antes de executar os comandos acima.
+
+#### Option B: Using Local PostgreSQL (Instalação manual)
+
+Se preferir usar PostgreSQL instalado localmente:
+
+1. Certifique-se que o PostgreSQL está instalado e rodando
+2. Crie um banco de dados chamado `community_library`
+3. Use as credenciais configuradas no arquivo `.env` (veja Passo 3 abaixo)
+
+> **Docker Compose é opcional** — escolha a opção que melhor se adequa ao seu ambiente de desenvolvimento.
 
 ### Passo a Passo
 
