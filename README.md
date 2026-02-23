@@ -42,7 +42,7 @@ Originalmente proposto com **SQLite**, decidi desafiar-me e evoluir a stack para
 
 Escolha uma das opções abaixo:
 
-#### Option A: Using Docker Compose (Recomendado para desenvolvimento)
+#### Opção A: Usando Docker Compose (Recomendado para desenvolvimento)
 
 Os arquivos de configuração já estão inclusos no projeto (`docker-compose.yml`).
 
@@ -73,7 +73,7 @@ docker-compose down -v
 
 > **Localização:** O arquivo `docker-compose.yml` está na raiz do projeto. Certifique-se de que o Docker está instalado e rodando antes de executar os comandos acima.
 
-#### Option B: Using Local PostgreSQL (Instalação manual)
+#### Opção B: Usando PostgreSQL Local (Instalação manual)
 
 Se preferir usar PostgreSQL instalado localmente:
 

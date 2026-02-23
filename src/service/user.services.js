@@ -44,7 +44,18 @@ async function createUserService(newUser) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   // 4. ORQUESTRAÇÃO: Cria um novo objeto com a senha criptografada e manda para o banco
-  const newUserWithHash = { ...newUser, password: passwordHash };
+  /*
+     DEFENSE IN DEPTH (Defesa em Profundidade):
+     Em vez de usar o spread operator (...newUser), montamos o objeto manualmente.
+     Isso garante que, mesmo que o validador (Zod) deixe passar campos extras por engano,
+     apenas os dados que realmente queremos (username, email, password, avatar) cheguem ao banco.
+  */
+  const newUserWithHash = {
+    username,
+    email,
+    password: passwordHash,
+    avatar,
+  };
   const createdUser =
     await userRepositories.createUserRepository(newUserWithHash);
 
