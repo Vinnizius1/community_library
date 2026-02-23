@@ -14,7 +14,7 @@ export class AppError extends Error {
   constructor(message, statusCode = 400) {
     super(message);
     this.statusCode = statusCode;
-    // Define o nome da classe dinamicamente para facilitar a identificação no código
+    // Faz com que o erro seja identificado como "AppError" em vez de "Error" nos logs e tratamento de erros.
     this.name = this.constructor.name;
   }
 }
