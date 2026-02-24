@@ -6,11 +6,17 @@ import { ZodError } from "zod";
 // que é a função middleware propriamente dita, responsável por validar os dados da requisição.
 const validate = (schema) => (req, res, next) => {
   try {
+    /* O método "safeParse" do Zod tenta validar o req.body de acordo com o schema.
+       Ao contrário do "parse", ele não lança um erro diretamente.
+       Em vez disso, retorna um objeto com um boolean "success" e, em caso de falha,
+       um array de erros detalhados.
+    */
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      // Se a validação falhar, retornamos um status 400 (Bad Request) com os detalhes dos erros.
+      return res.status(400).json({ error: result.error.errors });
+    }
     /*
-      O método "parse" do Zod faz duas coisas:
-      1. VALIDA se o `req.body` corresponde ao `schema`. Se não, ele lança um erro.
-      2. TRANSFORMA e LIMPA os dados, retornando um objeto limpo (ex: remove campos extras).
-      
       Por isso, reatribuímos o resultado a `req.body`. Assim, o controller receberá
       apenas os dados validados e sanitizados.
     */
@@ -18,11 +24,6 @@ const validate = (schema) => (req, res, next) => {
     next();
   } catch (e) {
     // Verificamos se o erro é uma instância do ZodError.
-    // Isso garante que estamos tratando apenas erros de validação do cliente.
-    if (e instanceof ZodError) {
-      // Se for um erro do Zod, retornamos um status 400 (Bad Request) com os detalhes dos erros.
-      return res.status(400).json({ error: e.errors });
-    }
     // Se for qualquer outro tipo de erro (ex: erro de programação),
     // passamos para o próximo middleware de erro do Express, que resultará em um 500 (Internal Server Error).
     next(e);
