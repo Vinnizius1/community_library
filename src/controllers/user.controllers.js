@@ -17,7 +17,10 @@ async function createUserController(req, res) {
     // O service retorna o usuário criado (já sem a senha),
     // e o controller é responsável por enviar a resposta HTTP, ou seja,
     // formata a resposta final para o cliente.
-    return res.status(201).json(createdUser);
+    return res.status(201).json({
+      message: "Usuário criado com sucesso!",
+      user: createdUser,
+    });
   } catch (error) {
     // Log do erro real no console para o desenvolvedor debugar (não envie isso pro cliente!)
     console.error(error);

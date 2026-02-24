@@ -1,28 +1,11 @@
 import db from "../config/database.js";
+import { AppError } from "../errors/AppError.js";
 
 /**
  * PADRÃO DE MERCADO: Data Access Layer (DAL)
  * O Repository é a única parte do sistema que "fala" SQL.
  * Isso isola o banco de dados do resto da aplicação.
  */
-
-/* 
-  BOA PRÁTICA: Inicialização de Tabelas.
-  Em projetos reais, usamos "Migrations". Para este estágio, garantimos que a 
-  tabela existe assim que o servidor sobe. 
-  No Postgres, usamos SERIAL para IDs autoincrementais.
-*/
-db.query(
-  `
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      avatar TEXT
-    ) 
-`,
-).catch((err) => console.error("Erro crítico ao criar tabela users:", err));
 
 /**
  * Cria um novo usuário no banco.
@@ -58,13 +41,16 @@ async function createUserRepository(newUser) {
     // result.rows contém um array com os registros afetados.
     const createdUser = result.rows[0];
 
-    return {
-      message: "Usuário criado com sucesso!",
-      user: createdUser,
-    };
+    return createdUser;
   } catch (err) {
     /* 
        TRATAMENTO DE ERRO: 
+       Verificamos se é erro de violação de unicidade (código 23505 no Postgres).
+    */
+    if (err.code === "23505") {
+      throw new AppError("Este e-mail ou username já está em uso.", 409);
+    }
+    /*
        Lançamos o erro para cima (Service) para que a regra de negócio decida 
        como responder ao usuário.
     */

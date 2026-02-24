@@ -22,23 +22,6 @@ async function createUserService(newUser) {
 
   // 1. VALIDAÇÃO BÁSICA: Já foi feita pelo Zod no middleware! O código aqui chega limpo.
 
-  // 2. REGRA DE NEGÓCIO: Verificar se o usuário já existe
-  // Verifica duplicidade de e-mail
-  const userAlreadyExists =
-    await userRepositories.findUserByEmailRepository(email);
-
-  if (userAlreadyExists) {
-    /* 
-       Lançar um erro aqui interrompe a execução. 
-       O Controller vai capturar esse erro no 'catch'.
-    */
-    // 409 Conflict: O recurso já existe
-    throw new AppError(
-      "Este e-mail já está sendo utilizado por outro usuário.",
-      409,
-    );
-  }
-
   // 3. SEGURANÇA: Criptografar a senha (Hash)
   // O número 10 é o "custo" (salt rounds). Quanto maior, mais seguro e mais lento. 10 é o padrão de mercado.
   const passwordHash = await bcrypt.hash(password, 10);
@@ -59,8 +42,7 @@ async function createUserService(newUser) {
   const createdUser =
     await userRepositories.createUserRepository(newUserWithHash);
 
-  const { password: _, ...userWithoutPassword } = createdUser;
-  return userWithoutPassword;
+  return createdUser;
 }
 
 export default { createUserService };
