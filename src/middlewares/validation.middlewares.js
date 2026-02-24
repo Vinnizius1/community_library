@@ -1,5 +1,3 @@
-import { ZodError } from "zod";
-
 // Preciso receber um "schema" para validar os dados de entrada.
 // O "schema" é uma estrutura que define as regras de validação para os dados que esperamos receber em uma requisição.
 // Serão 2 arrow functions: a primeira recebe o "schema" e retorna a segunda,
@@ -20,12 +18,11 @@ const validate = (schema) => (req, res, next) => {
       Por isso, reatribuímos o resultado a `req.body`. Assim, o controller receberá
       apenas os dados validados e sanitizados.
     */
-    req.body = schema.parse(req.body);
+    req.body = result.data;
     next();
   } catch (e) {
-    // Verificamos se o erro é uma instância do ZodError.
-    // Se for qualquer outro tipo de erro (ex: erro de programação),
-    // passamos para o próximo middleware de erro do Express, que resultará em um 500 (Internal Server Error).
+    // Passamos qualquer erro inesperado (ex: erro de programação) para o middleware
+    // de erro do Express, resultando em um 500 (Internal Server Error).
     next(e);
   }
 };
