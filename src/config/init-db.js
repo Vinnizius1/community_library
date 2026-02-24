@@ -23,15 +23,36 @@ async function initDb() {
 
     console.log("Tabela 'users' criada (ou já existente) com sucesso!");
   } catch (error) {
-    console.error("Erro ao inicializar o banco de dados:", error);
     // Remove a primeira linha do stack (que contém a mensagem de erro) para não vazar dados sensíveis
-    const frames =
-      error instanceof Error
-        ? error.stack?.split("\n").slice(1).join("\n")
-        : String(error);
-    console.error({ stack: frames || "No stack available" });
+    if (error instanceof Error) {
+      const frames = error.stack?.split("\n").slice(1);
+      if (frames && frames.length > 0) {
+        console.error({ stackFrames: frames });
+      } else {
+        console.error({
+          type: typeof error,
+          preview: String(error).slice(0, 100),
+        });
+      }
+    } else {
+      // Para non-Error throws, cria um safe Error wrapper
+      const safe = new Error();
+      safe.stack = new Error(String(error)).stack;
+      const frames = safe.stack?.split("\n").slice(1);
+      if (frames && frames.length > 0) {
+        console.error({ stackFrames: frames });
+      } else {
+        console.error({
+          type: typeof error,
+          preview: String(error).slice(0, 100),
+        });
+      }
+    }
     // Define o código de saída como erro (1), mas permite que o 'finally' execute antes de fechar.
-    process.exitCode = 1;
+    initDb().catch((err) => {
+      console.error("Erro fatal ao encerrar a conexão:", err);
+      process.exit(1);
+    });
   } finally {
     // Encerra a conexão com o banco para o script não ficar rodando eternamente
     await db.end();
