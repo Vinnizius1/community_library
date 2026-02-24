@@ -22,11 +22,11 @@ async function createUserService(newUser) {
 
   // 1. VALIDAÇÃO BÁSICA: Já foi feita pelo Zod no middleware! O código aqui chega limpo.
 
-  // 3. SEGURANÇA: Criptografar a senha (Hash)
+  // 2. SEGURANÇA: Criptografar a senha (Hash)
   // O número 10 é o "custo" (salt rounds). Quanto maior, mais seguro e mais lento. 10 é o padrão de mercado.
   const passwordHash = await bcrypt.hash(password, 10);
 
-  // 4. ORQUESTRAÇÃO: Cria um novo objeto com a senha criptografada e manda para o banco
+  // 3. ORQUESTRAÇÃO: Cria um novo objeto com a senha criptografada e manda para o banco
   /*
      DEFENSE IN DEPTH (Defesa em Profundidade):
      Em vez de usar o spread operator (...newUser), montamos o objeto manualmente.
@@ -42,7 +42,13 @@ async function createUserService(newUser) {
   const createdUser =
     await userRepositories.createUserRepository(newUserWithHash);
 
-  return createdUser;
+  /* 
+     Embora o Repository já use "RETURNING id, username..." (sem senha),
+     fazemos uma limpeza explícita aqui para garantir que o hash nunca vaze,
+     caso o Repository seja alterado no futuro.
+  */
+  const { password: _password, ...safeUser } = createdUser;
+  return safeUser;
 }
 
 export default { createUserService };

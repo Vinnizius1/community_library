@@ -63,8 +63,12 @@ async function findUserByEmailRepository(email) {
   const query = `
     SELECT * FROM users WHERE email = $1
   `;
-  const result = await db.query(query, [email]);
-  return result.rows[0]; // Retorna o usuário encontrado ou undefined. Se underfined, o Service sabe que pode criar um novo usuário com esse email.
+  try {
+    const result = await db.query(query, [email]);
+    return result.rows[0]; // Retorna o usuário encontrado ou undefined.
+  } catch (err) {
+    throw err;
+  }
 }
 
 export default { createUserRepository, findUserByEmailRepository };

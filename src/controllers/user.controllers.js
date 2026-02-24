@@ -23,7 +23,11 @@ async function createUserController(req, res) {
     });
   } catch (error) {
     // Log do erro real no console para o desenvolvedor debugar (não envie isso pro cliente!)
-    console.error(error);
+    // CodeRabbit: Logar apenas o necessário para evitar vazamento de dados sensíveis (PII)
+    console.error({
+      message: error.message,
+      stack: error.stack,
+    });
 
     // Verifica se o erro é uma instância da nossa classe personalizada AppError
     if (error instanceof AppError) {
