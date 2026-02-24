@@ -24,9 +24,12 @@ async function createUserController(req, res) {
   } catch (error) {
     // Log do erro real no console para o desenvolvedor debugar (não envie isso pro cliente!)
     // CodeRabbit: Logar apenas o necessário para evitar vazamento de dados sensíveis (PII)
-    console.error({
-      stack: error.stack,
-    });
+    // Remove a primeira linha do stack (que contém a mensagem de erro) para não vazar dados sensíveis
+    const frames =
+      error instanceof Error
+        ? error.stack?.split("\n").slice(1).join("\n")
+        : String(error);
+    console.error({ stack: frames || "No stack available" });
 
     // Verifica se o erro é uma instância da nossa classe personalizada AppError
     if (error instanceof AppError) {

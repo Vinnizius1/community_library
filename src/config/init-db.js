@@ -23,10 +23,13 @@ async function initDb() {
 
     console.log("Tabela 'users' criada (ou já existente) com sucesso!");
   } catch (error) {
-    // Logamos apenas a stack para evitar vazar credenciais ou dados sensíveis no terminal
-    console.error({
-      stack: error.stack,
-    });
+    console.error("Erro ao inicializar o banco de dados:", error);
+    // Remove a primeira linha do stack (que contém a mensagem de erro) para não vazar dados sensíveis
+    const frames =
+      error instanceof Error
+        ? error.stack?.split("\n").slice(1).join("\n")
+        : String(error);
+    console.error({ stack: frames || "No stack available" });
     // Define o código de saída como erro (1), mas permite que o 'finally' execute antes de fechar.
     process.exitCode = 1;
   } finally {

@@ -64,12 +64,8 @@ async function findUserByEmailRepository(email) {
     -- Selecionamos colunas específicas para evitar trazer a senha (hash) acidentalmente
     SELECT id, username, email, avatar FROM users WHERE email = $1
   `;
-  try {
-    const result = await db.query(query, [email]);
-    return result.rows[0]; // Retorna o usuário encontrado ou undefined.
-  } catch (err) {
-    throw err;
-  }
+  const result = await db.query(query, [email]);
+  return result.rows[0]; // Retorna o usuário encontrado ou undefined.
 }
 
 export default { createUserRepository, findUserByEmailRepository };
