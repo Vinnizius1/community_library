@@ -61,7 +61,8 @@ async function createUserRepository(newUser) {
 // Função para encontrar um usuário por email (usada para validação de duplicidade)
 async function findUserByEmailRepository(email) {
   const query = `
-    SELECT * FROM users WHERE email = $1
+    -- Selecionamos colunas específicas para evitar trazer a senha (hash) acidentalmente
+    SELECT id, username, email, avatar FROM users WHERE email = $1
   `;
   try {
     const result = await db.query(query, [email]);
