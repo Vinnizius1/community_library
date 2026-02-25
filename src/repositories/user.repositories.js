@@ -78,12 +78,8 @@ async function findUserByEmailRepository(email) {
     SELECT id, username, email, avatar FROM users WHERE email = $1
   `;
 
-  try {
-    const result = await db.query(query, [email]);
-    return result.rows[0]; // Retorna o usuário encontrado ou undefined.
-  } catch (err) {
-    throw err;
-  }
+  const result = await db.query(query, [email]);
+  return result.rows[0]; // Retorna o usuário encontrado ou undefined.
 }
 
 /**

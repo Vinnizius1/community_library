@@ -19,7 +19,7 @@ function extractErrorInfo(error) {
     return { stackFrames: frames };
   } else {
     if (error instanceof Error) {
-      return { type: typeof error, message: "[error message redacted]" };
+      return { name: error.name, message: error.message };
     } else {
       return { type: typeof error, preview: String(error).slice(0, 100) };
     }
@@ -43,14 +43,9 @@ async function initDb() {
     console.log("Tabela 'users' criada (ou já existente) com sucesso!");
   } catch (error) {
     // Remove a primeira linha do stack (que contém a mensagem de erro) para não vazar dados sensíveis
-    console.error(extractErrorInfo(error));
-    // ⚠️ CRÍTICO: Relançar o erro após log é ESSENCIAL.
-    // Nunca chamar initDb() novamente aqui (fire-and-forget) pois:
-    // 1. Não há await → retry ocorre de forma assíncrona
-    // 2. finally já vai fechar db.end(), deixando a conexão indisponível
-    // 3. retry falha contra conexão fechada
-    // Solução: logar o erro e relançar para propagação até o handler top-level.
-    console.error("Erro ao inicializar banco de dados:", error);
+    const errorInfo = extractErrorInfo(error);
+    console.error("Erro ao inicializar banco de dados:", errorInfo);
+    throw error;
     throw error;
   } finally {
     // Encerra a conexão com o banco para o script não ficar rodando eternamente

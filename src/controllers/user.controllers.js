@@ -8,8 +8,7 @@
  */
 import userService from "../service/user.services.js";
 import { AppError } from "../errors/AppError.js";
-import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
-
+import { parsePhoneNumber } from "libphonenumber-js";
 /**
  * Helper function para sanitizar e logar erros de forma segura
  * Remove PII (emails, telefones, credenciais) e loga apenas campos não-sensíveis
@@ -35,6 +34,8 @@ function safeLogError(error, logger = null) {
         const parsed = parsePhoneNumber(match, "BR");
         if (parsed && parsed.isValid && parsed.isValid()) {
           return "[phone redacted]";
+        } else {
+          return match;
         }
       } catch (e) {
         // Se falhar com BR, tenta sem país (E.164 format)
@@ -42,14 +43,14 @@ function safeLogError(error, logger = null) {
           const parsed = parsePhoneNumber(match);
           if (parsed && parsed.isValid && parsed.isValid()) {
             return "[phone redacted]";
+          } else {
+            return match;
           }
         } catch (e2) {
-          // Se ambas falhas, redactar baseado no padrão
-          return "[phone redacted]";
+          // Se ambas falhas, não é um telefone válido, manter original
+          return match;
         }
       }
-      // Padrão foi detectado mas não é válido, redactar mesmo assim
-      return "[phone redacted]";
     });
 
     // Redactar credenciais
@@ -126,7 +127,7 @@ async function createUserController(req, res) {
     }
 
     // Para qualquer outro erro desconhecido (banco de dados, bugs), loga e retornamos 500 e uma mensagem genérica
-    safeLogError(error, console);
+    safeLogError(error);
     return res.status(500).json({ message: "Erro interno do servidor." });
   }
 }
