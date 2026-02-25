@@ -7,6 +7,25 @@ import db from "./database.js";
   Comando: node src/config/init-db.js
 */
 
+function extractErrorInfo(error) {
+  let stack;
+  if (error instanceof Error) {
+    stack = error.stack;
+  } else {
+    stack = new Error(String(error)).stack;
+  }
+  const frames = stack?.split("\n").slice(1);
+  if (frames && frames.length > 0) {
+    return { stackFrames: frames };
+  } else {
+    if (error instanceof Error) {
+      return { type: typeof error, message: "[error message redacted]" };
+    } else {
+      return { type: typeof error, preview: String(error).slice(0, 100) };
+    }
+  }
+}
+
 async function initDb() {
   try {
     console.log("Iniciando criação de tabelas...");
@@ -24,37 +43,18 @@ async function initDb() {
     console.log("Tabela 'users' criada (ou já existente) com sucesso!");
   } catch (error) {
     // Remove a primeira linha do stack (que contém a mensagem de erro) para não vazar dados sensíveis
-    if (error instanceof Error) {
-      const frames = error.stack?.split("\n").slice(1);
-      if (frames && frames.length > 0) {
-        console.error({ stackFrames: frames });
-      } else {
-        console.error({
-          type: typeof error,
-          preview: String(error).slice(0, 100),
-        });
-      }
-    } else {
-      // Para non-Error throws, cria um safe Error wrapper
-      const safe = new Error();
-      safe.stack = new Error(String(error)).stack;
-      const frames = safe.stack?.split("\n").slice(1);
-      if (frames && frames.length > 0) {
-        console.error({ stackFrames: frames });
-      } else {
-        console.error({
-          type: typeof error,
-          preview: String(error).slice(0, 100),
-        });
-      }
-    }
-    // Define o código de saída como erro (1), mas permite que o 'finally' execute antes de fechar.
-    initDb().catch((err) => {
-      console.error("Erro fatal ao encerrar a conexão:", err);
-      process.exit(1);
-    });
+    console.error(extractErrorInfo(error));
+    // ⚠️ CRÍTICO: Relançar o erro após log é ESSENCIAL.
+    // Nunca chamar initDb() novamente aqui (fire-and-forget) pois:
+    // 1. Não há await → retry ocorre de forma assíncrona
+    // 2. finally já vai fechar db.end(), deixando a conexão indisponível
+    // 3. retry falha contra conexão fechada
+    // Solução: logar o erro e relançar para propagação até o handler top-level.
+    console.error("Erro ao inicializar banco de dados:", error);
+    throw error;
   } finally {
     // Encerra a conexão com o banco para o script não ficar rodando eternamente
+    // A propagação do erro ocorre APÓS o finally (garantido por semântica try-finally)
     await db.end();
   }
 }

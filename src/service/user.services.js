@@ -47,6 +47,9 @@ async function createUserService(newUser) {
      fazemos uma limpeza explícita aqui para garantir que o hash nunca vaze,
      caso o Repository seja alterado no futuro.
   */
+  if (!createdUser) {
+    throw new AppError("User could not be created.", 500);
+  }
   const { password: _password, ...safeUser } = createdUser;
   return safeUser;
 }

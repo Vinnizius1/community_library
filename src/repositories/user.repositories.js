@@ -48,7 +48,13 @@ async function createUserRepository(newUser) {
        Verificamos se é erro de violação de unicidade (código 23505 no Postgres).
     */
     if (err.code === "23505") {
-      throw new AppError("Este e-mail ou username já está em uso.", 409);
+      if (err.constraint === "users_email_key") {
+        throw new AppError("Este e-mail já está em uso.", 409);
+      } else if (err.constraint === "users_username_key") {
+        throw new AppError("Este username já está em uso.", 409);
+      } else {
+        throw new AppError("Este e-mail ou username já está em uso.", 409);
+      }
     }
     /*
        Lançamos o erro para cima (Service) para que a regra de negócio decida 
@@ -58,14 +64,47 @@ async function createUserRepository(newUser) {
   }
 }
 
-// Função para encontrar um usuário por email (usada para validação de duplicidade)
+/**
+ * Encontra um usuário por email (para validação de duplicidade).
+ * ⚠️ IMPORTANTE: Esta função NÃO retorna a senha!
+ * Use esta função APENAS para: verificar duplicidade, listar dados públicos do usuário.
+ * Para autenticação (login/bcrypt), use findUserByEmailForAuthRepository().
+ * @param {string} email - Email do usuário
+ * @returns {Promise<Object|undefined>} - Usuário sem senha ou undefined
+ */
 async function findUserByEmailRepository(email) {
   const query = `
     -- Selecionamos colunas específicas para evitar trazer a senha (hash) acidentalmente
     SELECT id, username, email, avatar FROM users WHERE email = $1
   `;
+
+  try {
+    const result = await db.query(query, [email]);
+    return result.rows[0]; // Retorna o usuário encontrado ou undefined.
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Encontra um usuário por email com senha incluída (para autenticação).
+ * ⚠️ SEGURANÇA: Esta função retorna a senha (hash)!
+ * Use esta função APENAS em: login, comparação bcrypt, fluxos de autenticação.
+ * NUNCA retorne os dados desta função diretamente ao cliente.
+ * @param {string} email - Email do usuário
+ * @returns {Promise<Object|undefined>} - Usuário com senha (hash) ou undefined
+ */
+async function findUserByEmailForAuthRepository(email) {
+  const query = `
+    -- Incluímos a senha pois esta função é APENAS para autenticação (bcrypt compare)
+    SELECT id, username, email, avatar, password FROM users WHERE email = $1
+  `;
   const result = await db.query(query, [email]);
   return result.rows[0]; // Retorna o usuário encontrado ou undefined.
 }
 
-export default { createUserRepository, findUserByEmailRepository };
+export default {
+  createUserRepository,
+  findUserByEmailRepository,
+  findUserByEmailForAuthRepository,
+};
