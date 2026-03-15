@@ -126,14 +126,18 @@ async function findUserByIdRepository(id) {
 }
 
 /**
- * Lista todos os usuários.
+ * Lista usuários com paginação para evitar sobrecarga.
+ * @param {number} limit - Máximo de registros a retornar (Default: 100)
+ * @param {number} offset - Quantos registros pular (Default: 0)
  * @returns {Promise<Array>} - Array de usuários
  */
-async function findAllUsersRepository() {
+async function findAllUsersRepository(limit = 100, offset = 0) {
   const query = `
     SELECT id, username, email, avatar FROM users
+    ORDER BY id
+    LIMIT $1 OFFSET $2
   `;
-  const result = await db.query(query);
+  const result = await db.query(query, [limit, offset]);
   return result.rows;
 }
 
