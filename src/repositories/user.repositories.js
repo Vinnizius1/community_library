@@ -112,8 +112,35 @@ async function findUserByEmailForAuthRepository(email) {
   return result.rows[0]; // Retorna o usuário encontrado ou undefined.
 }
 
+/**
+ * Encontra um usuário por ID.
+ * @param {number} id - ID do usuário
+ * @returns {Promise<Object|undefined>} - Usuário ou undefined
+ */
+async function findUserByIdRepository(id) {
+  const query = `
+    SELECT id, username, email, avatar FROM users WHERE id = $1
+  `;
+  const result = await db.query(query, [id]);
+  return result.rows[0]; // Retorna o usuário encontrado ou undefined.
+}
+
+/**
+ * Lista todos os usuários.
+ * @returns {Promise<Array>} - Array de usuários
+ */
+async function findAllUsersRepository() {
+  const query = `
+    SELECT id, username, email, avatar FROM users
+  `;
+  const result = await db.query(query);
+  return result.rows;
+}
+
 export default {
   createUserRepository,
   findUserByEmailRepository,
   findUserByEmailForAuthRepository,
+  findUserByIdRepository,
+  findAllUsersRepository,
 };
