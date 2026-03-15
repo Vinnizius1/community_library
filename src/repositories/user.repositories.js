@@ -8,11 +8,12 @@ import { AppError } from "../errors/AppError.js";
  */
 
 /**
- * Cria um novo usuário no banco.
- * @param {Object} newUser - Objeto contendo dados do usuário.
- * @returns {Promise<Object>} - Retorna o usuário criado (sem a senha).
+ * Insere um novo registro de usuário no banco de dados PostgreSQL.
+ * 🛡️ SEGURANÇA: Esta função utiliza a cláusula RETURNING para retornar apenas
+ * dados públicos (id, username, email, avatar). O hash da senha é omitido.
+ * @param {Object} newUser - Objeto contendo username, email, password e avatar.
+ * @returns {Promise<Object>} - Promessa que resolve no objeto do usuário criado.
  */
-
 async function createUserRepository(newUser) {
   const { username, email, password, avatar } = newUser;
 
@@ -22,12 +23,20 @@ async function createUserRepository(newUser) {
     Usamos "Parameterized Queries" ($1, $2...). O driver 'pg' limpa os dados 
     antes de enviar ao banco, evitando ataques hacker.
   */
+  // 1. O COMANDO (A Receita)
   const query = `
     INSERT INTO users (username, email, password, avatar) 
     VALUES ($1, $2, $3, $4) 
     RETURNING id, username, email, avatar
   `;
 
+  // "values" é um array que corresponde aos placeholders ($1, $2, etc.) na query.
+  // A ordem dos valores deve corresponder à ordem dos placeholders na query.
+  // O driver 'pg' irá substituir $1 por username, $2 por email, etc.
+  // "values" (Entrada) é o que você entrega para o banco guardar.
+  // O "RETURNING" (Saída) é o que você recebe de volta do banco.
+  // Ao omitir a senha do RETURNING, a variável "result" nunca terá acesso ao hash da senha.
+  // 2. OS INGREDIENTES (Os Dados)
   const values = [username, email, password, avatar];
 
   try {
@@ -36,10 +45,14 @@ async function createUserRepository(newUser) {
        A cláusula RETURNING do Postgres é extremamente performática, pois evita 
        que tenhamos que fazer um novo SELECT para pegar o ID gerado.
     */
+    // 3. A EXECUÇÃO
     const result = await db.query(query, values);
 
     // result.rows contém um array com os registros afetados.
+    // 4. O RESULTADO (O que volta para o JavaScript)
     const createdUser = result.rows[0];
+    // { id: 1, username: "joao", email: "..." }
+    // ^^^ A senha NÃO está aqui, garantindo que ela não vaze para o Frontend acidentalmente.
 
     return createdUser;
   } catch (err) {

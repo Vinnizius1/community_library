@@ -46,7 +46,6 @@ async function initDb() {
     const errorInfo = extractErrorInfo(error);
     console.error("Erro ao inicializar banco de dados:", errorInfo);
     throw error;
-    throw error;
   } finally {
     // Encerra a conexão com o banco para o script não ficar rodando eternamente
     // A propagação do erro ocorre APÓS o finally (garantido por semântica try-finally)

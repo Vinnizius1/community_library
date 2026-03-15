@@ -1,5 +1,6 @@
 // Preciso receber um "schema" para validar os dados de entrada.
-// O "schema" é uma estrutura que define as regras de validação para os dados que esperamos receber em uma requisição.
+// O "schema" é uma estrutura que define as regras de validação para os dados que esperamos receber
+// em uma requisição.
 // Serão 2 arrow functions: a primeira recebe o "schema" e retorna a segunda,
 // que é a função middleware propriamente dita, responsável por validar os dados da requisição.
 const validate = (schema) => (req, res, next) => {
@@ -10,6 +11,7 @@ const validate = (schema) => (req, res, next) => {
        um array de erros detalhados.
     */
     const result = schema.safeParse(req.body);
+
     if (!result.success) {
       // Se a validação falhar, retornamos um status 400 (Bad Request) com os detalhes dos erros.
       return res.status(400).json({ error: result.error.errors });
@@ -19,6 +21,7 @@ const validate = (schema) => (req, res, next) => {
       apenas os dados validados e sanitizados.
     */
     req.body = result.data;
+
     next();
   } catch (e) {
     // Passamos qualquer erro inesperado (ex: erro de programação) para o middleware
