@@ -57,4 +57,28 @@ async function createUserService(newUser) {
   return safeUser;
 }
 
-export default { createUserService };
+/**
+ * Serviço para listar todos os usuários.
+ * @param {number} limit
+ * @param {number} offset
+ * @returns {Promise<Array>} - Array de usuários
+ */
+async function findAllUsersService(limit, offset) {
+  const users = await userRepositories.findAllUsersRepository(limit, offset);
+  return users;
+}
+
+/**
+ * Serviço para encontrar um usuário por ID.
+ * @param {number} id - ID do usuário
+ * @returns {Promise<Object|undefined>} - Usuário ou undefined
+ */
+async function findUserByIdService(id) {
+  const user = await userRepositories.findUserByIdRepository(id);
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
+  return user;
+}
+
+export default { createUserService, findAllUsersService, findUserByIdService };
