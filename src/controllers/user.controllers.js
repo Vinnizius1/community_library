@@ -132,4 +132,57 @@ async function createUserController(req, res) {
   }
 }
 
-export default { createUserController };
+/**
+ * Controller para listar todos os usuários.
+ * Recebe os parâmetros de paginação (limit e offset) via query string,
+ * chama o serviço para obter os usuários, e retorna a resposta ao cliente.
+ * Defensivamente, remove o campo de senha antes de enviar a resposta, mesmo que o serviço já faça isso,
+ * para garantir que dados sensíveis nunca vazem.
+ * @param {Object} req - Objeto de requisição do Express
+ * @param {Object} res - Objeto de resposta do Express
+ * @returns {Promise<Response>} - Resposta HTTP com a lista de usuários ou mensagem de erro
+ */
+async function findAllUsersController(req, res) {
+  try {
+    const { limit = 10, offset = 0 } = req.query;
+    const users = await userService.findAllUsersService(
+      Number(limit),
+      Number(offset),
+    );
+    const safeUsers = users.map(({ password, ...safeUser }) => safeUser);
+    return res.status(200).json({ users: safeUsers });
+  } catch (error) {
+    safeLogError(error);
+    return res.status(500).json({ message: "Erro interno do servidor." });
+  }
+}
+
+/**
+ * Controller para encontrar um usuário por ID.
+ * Recebe o ID do usuário via parâmetro de rota, chama o serviço para obter o usuário, e retorna a resposta ao cliente.
+ * Defensivamente, remove o campo de senha antes de enviar a resposta, mesmo que o serviço já faça isso,
+ * para garantir que dados sensíveis nunca vazem.
+ * @param {Object} req - Objeto de requisição do Express
+ * @param {Object} res - Objeto de resposta do Express
+ * @returns {Promise<Response>} - Resposta HTTP com o usuário encontrado ou mensagem de erro
+ */
+async function findUserByIdController(req, res) {
+  try {
+    const { id } = req.params;
+    const user = await userService.findUserByIdService(Number(id));
+    const { password, ...safeUser } = user;
+    return res.status(200).json({ user: safeUser });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    safeLogError(error);
+    return res.status(500).json({ message: "Erro interno do servidor." }); // Fallback para erros inesperados
+  }
+}
+
+export default {
+  createUserController,
+  findAllUsersController,
+  findUserByIdController,
+};
