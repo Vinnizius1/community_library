@@ -152,11 +152,13 @@ async function findAllUsersController(req, res) {
     const safeUsers = users.map(({ password, ...safeUser }) => safeUser);
     return res.status(200).json({ users: safeUsers });
   } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
     safeLogError(error);
     return res.status(500).json({ message: "Erro interno do servidor." });
   }
 }
-
 /**
  * Controller para encontrar um usuário por ID.
  * Recebe o ID do usuário via parâmetro de rota, chama o serviço para obter o usuário, e retorna a resposta ao cliente.
@@ -170,6 +172,9 @@ async function findUserByIdController(req, res) {
   try {
     const { id } = req.params;
     const user = await userService.findUserByIdService(Number(id));
+    // The service already throws a 404 AppError if the user is not found.
+    // The catch block below will handle it.
+
     const { password, ...safeUser } = user;
     return res.status(200).json({ user: safeUser });
   } catch (error) {
@@ -177,7 +182,7 @@ async function findUserByIdController(req, res) {
       return res.status(error.statusCode).json({ message: error.message });
     }
     safeLogError(error);
-    return res.status(500).json({ message: "Erro interno do servidor." }); // Fallback para erros inesperados
+    return res.status(500).json({ message: "Erro interno do servidor." });
   }
 }
 
