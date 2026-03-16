@@ -8,7 +8,7 @@
  */
 import userService from "../service/user.services.js";
 import { AppError } from "../errors/AppError.js";
-import { parsePhoneNumber } from "libphonenumber-js";
+import { parsePhoneNumberWithError } from "libphonenumber-js";
 /**
  * Helper function para sanitizar e logar erros de forma segura
  * Remove PII (emails, telefones, credenciais) e loga apenas campos não-sensíveis
@@ -31,7 +31,7 @@ function safeLogError(error, logger = null) {
     s = s.replace(phoneRegex, (match) => {
       try {
         // Tenta parse com país padrão BR
-        const parsed = parsePhoneNumber(match, "BR");
+        const parsed = parsePhoneNumberWithError(match, "BR");
         if (parsed && parsed.isValid && parsed.isValid()) {
           return "[phone redacted]";
         } else {
@@ -40,7 +40,7 @@ function safeLogError(error, logger = null) {
       } catch (e) {
         // Se falhar com BR, tenta sem país (E.164 format)
         try {
-          const parsed = parsePhoneNumber(match);
+          const parsed = parsePhoneNumberWithError(match);
           if (parsed && parsed.isValid && parsed.isValid()) {
             return "[phone redacted]";
           } else {
