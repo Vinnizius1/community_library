@@ -175,7 +175,7 @@ async function findUserByIdController(req, res) {
 
   // DENTRO DO 'TRY' colocamos tarefas assíncronas que podem falhar, como chamadas a serviços ou banco de dados.
   try {
-    const user = await userService.findUserByIdService(Number(id));
+    const user = await userService.findUserByIdService(id);
     // The service already throws a 404 AppError if the user is not found.
     // The catch block below will handle it.
 
@@ -203,9 +203,12 @@ async function updateUserController(req, res) {
     // O middleware 'validateNumericId' já converteu e validou o ID
     const updatedUser = await userService.updateUserService(id, updateData);
 
+    // Defensivamente, removemos campos sensíveis antes de retornar
+    const { password, ...safeUser } = updatedUser;
+
     return res.status(200).json({
       message: "Usuário atualizado com sucesso!",
-      user: updatedUser,
+      user: safeUser,
     });
   } catch (error) {
     if (error instanceof AppError) {
