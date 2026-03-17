@@ -32,6 +32,15 @@ const validate = (schema) => (req, res, next) => {
   }
 };
 
+// Schema para validação de IDs numéricos - definido uma vez (fora da função) para performance.
+// z.coerce.number() tenta converter a string (ex: "123") para número automaticamente.
+const idSchema = z.coerce
+  .number({
+    invalid_type_error: "ID must be a valid number",
+  })
+  .int({ message: "ID must be an integer" })
+  .positive({ message: "ID must be a positive integer" });
+
 /**
  * Middleware para validar parâmetros de rota numéricos (IDs).
  * Valida que o parâmetro :id é um número inteiro positivo.
@@ -44,17 +53,6 @@ const validate = (schema) => (req, res, next) => {
 const validateNumericId = (req, res, next) => {
   try {
     const { id } = req.params;
-
-    // Define o schema para validar um ID numérico
-    const idSchema = z
-      .string()
-      .refine((val) => !Number.isNaN(Number(val)), {
-        message: "ID must be a valid number",
-      })
-      .refine((val) => Number(val) > 0, {
-        message: "ID must be a positive integer",
-      })
-      .transform((val) => Number(val));
 
     const result = idSchema.safeParse(id);
 
