@@ -81,4 +81,41 @@ async function findUserByIdService(id) {
   const { password, ...safeUser } = user;
   return safeUser;
 }
-export default { createUserService, findAllUsersService, findUserByIdService };
+
+/**
+ * Serviço para atualizar dados de um usuário.
+ * @param {number} id - ID do usuário
+ * @param {Object} userData - Objeto com campos a atualizar
+ * @returns {Promise<Object>} - Usuário atualizado (sem senha)
+ */
+async function updateUserService(id, userData) {
+  const { password } = userData;
+
+  // Se houver senha nova, cria o hash antes de enviar ao banco
+  if (password) {
+    userData.password = await bcrypt.hash(password, 10);
+  }
+
+  const updatedUser = await userRepositories.updateUserRepository(id, userData);
+
+  // Garante que a senha (mesmo hash) não retorne para o controller
+  const { password: _password, ...safeUser } = updatedUser;
+  return safeUser;
+}
+
+/**
+ * Serviço para excluir um usuário.
+ * @param {number} id - ID do usuário
+ */
+async function deleteUserService(id) {
+  // O repositório já trata o erro 404 se o ID não existir
+  await userRepositories.deleteUserRepository(id);
+}
+
+export default {
+  createUserService,
+  findAllUsersService,
+  findUserByIdService,
+  updateUserService,
+  deleteUserService,
+};
