@@ -89,16 +89,28 @@ async function findUserByIdService(id) {
  * @returns {Promise<Object>} - Usuário atualizado (sem senha)
  */
 async function updateUserService(id, userData) {
-  const { password } = userData;
+  const { username, email, password, avatar } = userData;
 
-  // Se houver senha nova, cria o hash antes de enviar ao banco
+  // Monta o objeto de atualização com apenas os campos permitidos (Defense in Depth).
+  // Isso evita a mutação do objeto 'userData' original e garante que apenas campos válidos sejam passados.
+  const updateData = {};
+  if (username !== undefined) updateData.username = username;
+  if (email !== undefined) updateData.email = email;
+  if (avatar !== undefined) updateData.avatar = avatar;
+
+  // Se uma nova senha for fornecida, cria o hash dela.
   if (password) {
-    userData.password = await bcrypt.hash(password, 10);
+    updateData.password = await bcrypt.hash(password, 10);
   }
 
-  const updatedUser = await userRepositories.updateUserRepository(id, userData);
+  // O repositório já lança um erro 400 se 'updateData' estiver vazio
+  // e um erro 404 se o usuário não for encontrado.
+  const updatedUser = await userRepositories.updateUserRepository(
+    id,
+    updateData,
+  );
 
-  // Garante que a senha (mesmo hash) não retorne para o controller
+  // A linha abaixo é uma garantia final de que a senha não será retornada.
   const { password: _password, ...safeUser } = updatedUser;
   return safeUser;
 }
