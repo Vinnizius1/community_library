@@ -192,6 +192,9 @@ async function updateUserRepository(id, userData) {
       } else if (err.constraint === "users_username_key") {
         throw new AppError("Este username já está em uso.", 409);
       }
+      // Se for uma violação de unicidade, mas não sabemos qual campo, retornamos uma mensagem genérica.
+      // É um fallback para garantir que o usuário receba um feedback útil, mesmo que o banco de dados tenha uma configuração inesperada.
+      throw new AppError("Este e-mail ou username já está em uso.", 409);
     }
     throw err; // Re-lança outros erros para serem tratados em camadas superiores.
   }
@@ -208,8 +211,10 @@ async function deleteUserRepository(id) {
     WHERE id = $1
   `;
   const result = await db.query(query, [id]);
-  // rowCount informa se alguma linha foi de fato deletada.
-  return result.rowCount;
+  if (result.rowCount === 0) {
+    throw new AppError("User not found.", 404);
+  }
+  return result.rowCount; // Retorna 1 se o usuário foi excluído com sucesso.
 }
 
 export default {

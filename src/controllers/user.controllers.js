@@ -143,8 +143,9 @@ async function createUserController(req, res) {
  * @returns {Promise<Response>} - Resposta HTTP com a lista de usuários ou mensagem de erro
  */
 async function findAllUsersController(req, res) {
+  const { limit = 10, offset = 0 } = req.query;
+
   try {
-    const { limit = 10, offset = 0 } = req.query;
     const users = await userService.findAllUsersService(
       Number(limit),
       Number(offset),
