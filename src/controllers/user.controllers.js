@@ -169,8 +169,11 @@ async function findAllUsersController(req, res) {
  * @returns {Promise<Response>} - Resposta HTTP com o usuário encontrado ou mensagem de erro
  */
 async function findUserByIdController(req, res) {
+  // o 'id' vem do parâmetro da requisição, definido na rota como '/users/:id'
+  const { id } = req.params;
+
+  // DENTRO DO 'TRY' colocamos tarefas assíncronas que podem falhar, como chamadas a serviços ou banco de dados.
   try {
-    const { id } = req.params;
     const user = await userService.findUserByIdService(Number(id));
     // The service already throws a 404 AppError if the user is not found.
     // The catch block below will handle it.

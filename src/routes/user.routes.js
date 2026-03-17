@@ -14,4 +14,13 @@ router.post(
   userController.createUserController,
 );
 
+// 2ª Rota
+router.get("/users", userController.findAllUsersController);
+
+// 3ª Rota
+// O ':id' é um parâmetro de rota OBRIGATÓRIO, que pode ser acessado no controller via 'req.params.id'
+router.get("/users/:id", userController.findUserByIdController);
+
+// 4ª Rota
+
 export default router;

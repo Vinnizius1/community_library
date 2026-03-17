@@ -141,10 +141,78 @@ async function findAllUsersRepository(limit = 100, offset = 0) {
   return result.rows;
 }
 
+/**
+ * Atualiza um usuário existente no banco de dados de forma dinâmica.
+ * A query é construída apenas com os campos fornecidos para atualização.
+ * @param {number} id - ID do usuário a ser atualizado
+ * @param {Object} userData - Objeto contendo os campos a serem atualizados (ex: { username, avatar })
+ * @returns {Promise<Object>} - Promessa que resolve no objeto do usuário atualizado (sem senha)
+ */
+async function updateUserRepository(id, userData) {
+  // Filtra apenas os campos que foram fornecidos para atualização.
+  const fields = Object.keys(userData).filter(
+    (key) => userData[key] !== undefined,
+  );
+
+  // Se nenhum campo foi fornecido, não há nada a fazer.
+  if (fields.length === 0) {
+    throw new AppError("No fields to update provided.", 400);
+  }
+
+  // Constrói a cláusula SET dinamicamente: "username" = $1, "avatar" = $2, ...
+  const setClause = fields
+    .map((key, index) => `"${key}" = $${index + 1}`)
+    .join(", ");
+
+  // Cria o array de valores correspondente aos campos.
+  const values = fields.map((key) => userData[key]);
+
+  const query = `
+    UPDATE users 
+    SET ${setClause} 
+    WHERE id = $${fields.length + 1} 
+    RETURNING id, username, email, avatar`;
+
+  try {
+    const result = await db.query(query, [...values, id]);
+    if (result.rowCount === 0) {
+      throw new AppError("User not found or no data to update.", 404);
+    }
+    return result.rows[0];
+  } catch (err) {
+    // Reutiliza o tratamento de erro de e-mail/username duplicado
+    if (err.code === "23505") {
+      if (err.constraint === "users_email_key") {
+        throw new AppError("Este e-mail já está em uso.", 409);
+      } else if (err.constraint === "users_username_key") {
+        throw new AppError("Este username já está em uso.", 409);
+      }
+    }
+    throw err; // Lança outros erros para cima
+  }
+}
+
+/**
+ * Exclui um usuário do banco de dados.
+ * @param {number} id - ID do usuário a ser excluído
+ * @returns {Promise<number>} - Retorna o número de linhas afetadas (1 para sucesso, 0 se não encontrado).
+ */
+async function deleteUserRepository(id) {
+  const query = `
+    DELETE FROM users
+    WHERE id = $1
+    RETURNING id
+  `;
+  const result = await db.query(query, [id]);
+  return result.rowCount;
+}
+
 export default {
   createUserRepository,
   findUserByEmailRepository,
   findUserByEmailForAuthRepository,
   findUserByIdRepository,
   findAllUsersRepository,
+  updateUserRepository,
+  deleteUserRepository,
 };
