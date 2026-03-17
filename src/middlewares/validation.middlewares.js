@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 // Preciso receber um "schema" para validar os dados de entrada.
 // O "schema" é uma estrutura que define as regras de validação para os dados que esperamos receber
 // em uma requisição.
@@ -30,4 +32,45 @@ const validate = (schema) => (req, res, next) => {
   }
 };
 
-export { validate };
+/**
+ * Middleware para validar parâmetros de rota numéricos (IDs).
+ * Valida que o parâmetro :id é um número inteiro positivo.
+ * Retorna 400 Bad Request se o ID for inválido.
+ * @param {Object} req - Objeto de requisição do Express
+ * @param {Object} res - Objeto de resposta do Express
+ * @param {Function} next - Função para chamar o próximo middleware
+ * @returns {void}
+ */
+const validateNumericId = (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Define o schema para validar um ID numérico
+    const idSchema = z
+      .string()
+      .refine((val) => !Number.isNaN(Number(val)), {
+        message: "ID must be a valid number",
+      })
+      .refine((val) => Number(val) > 0, {
+        message: "ID must be a positive integer",
+      })
+      .transform((val) => Number(val));
+
+    const result = idSchema.safeParse(id);
+
+    if (!result.success) {
+      // Se a validação falhar, retornamos um status 400 (Bad Request)
+      return res.status(400).json({ error: result.error.errors });
+    }
+
+    // Armazena o ID validado e convertido para número
+    req.params.id = result.data;
+
+    next();
+  } catch (e) {
+    // Passamos qualquer erro inesperado para o middleware de erro do Express
+    next(e);
+  }
+};
+
+export { validate, validateNumericId };

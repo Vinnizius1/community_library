@@ -142,45 +142,50 @@ async function findAllUsersRepository(limit = 100, offset = 0) {
 }
 
 /**
- * Atualiza um usuário existente no banco de dados de forma dinâmica.
- * A query é construída apenas com os campos fornecidos para atualização.
- * @param {number} id - ID do usuário a ser atualizado
- * @param {Object} userData - Objeto contendo os campos a serem atualizados (ex: { username, avatar })
- * @returns {Promise<Object>} - Promessa que resolve no objeto do usuário atualizado (sem senha)
+ * Atualiza um usuário existente no banco de dados de forma dinâmica e segura.
+ * A query é construída apenas com os campos permitidos e fornecidos para atualização.
+ * @param {number} id - ID do usuário a ser atualizado.
+ * @param {Object} userData - Objeto contendo os campos a serem atualizados (ex: { username, avatar }).
+ * @returns {Promise<Object>} - Promessa que resolve no objeto do usuário atualizado (sem senha).
  */
 async function updateUserRepository(id, userData) {
-  // Filtra apenas os campos que foram fornecidos para atualização.
+  // Whitelist de colunas permitidas para prevenir Mass Assignment / SQL Injection.
+  const ALLOWED_FIELDS = ["username", "email", "password", "avatar"];
+
+  // Filtra os dados recebidos para incluir apenas campos permitidos e que não são undefined.
   const fields = Object.keys(userData).filter(
-    (key) => userData[key] !== undefined,
+    (key) => userData[key] !== undefined && ALLOWED_FIELDS.includes(key),
   );
 
-  // Se nenhum campo foi fornecido, não há nada a fazer.
+  // Se nenhum campo válido foi fornecido para atualização, lança um erro.
   if (fields.length === 0) {
     throw new AppError("No fields to update provided.", 400);
   }
 
-  // Constrói a cláusula SET dinamicamente: "username" = $1, "avatar" = $2, ...
+  // Constrói a cláusula SET dinamicamente: "username" = $1, "avatar" = $2, etc.
   const setClause = fields
     .map((key, index) => `"${key}" = $${index + 1}`)
     .join(", ");
 
-  // Cria o array de valores correspondente aos campos.
+  // Cria o array de valores correspondentes aos campos a serem atualizados.
   const values = fields.map((key) => userData[key]);
 
   const query = `
     UPDATE users 
     SET ${setClause} 
     WHERE id = $${fields.length + 1} 
-    RETURNING id, username, email, avatar`;
+    RETURNING id, username, email, avatar
+  `;
 
   try {
     const result = await db.query(query, [...values, id]);
     if (result.rowCount === 0) {
-      throw new AppError("User not found or no data to update.", 404);
+      // Se rowCount é 0, o ID não foi encontrado no banco.
+      throw new AppError("User not found.", 404);
     }
     return result.rows[0];
   } catch (err) {
-    // Reutiliza o tratamento de erro de e-mail/username duplicado
+    // Reutiliza o tratamento de erro para e-mail/username duplicado (unique constraint).
     if (err.code === "23505") {
       if (err.constraint === "users_email_key") {
         throw new AppError("Este e-mail já está em uso.", 409);
@@ -188,7 +193,7 @@ async function updateUserRepository(id, userData) {
         throw new AppError("Este username já está em uso.", 409);
       }
     }
-    throw err; // Lança outros erros para cima
+    throw err; // Re-lança outros erros para serem tratados em camadas superiores.
   }
 }
 
@@ -201,9 +206,9 @@ async function deleteUserRepository(id) {
   const query = `
     DELETE FROM users
     WHERE id = $1
-    RETURNING id
   `;
   const result = await db.query(query, [id]);
+  // rowCount informa se alguma linha foi de fato deletada.
   return result.rowCount;
 }
 

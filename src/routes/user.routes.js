@@ -1,6 +1,9 @@
 import { Router } from "express";
 import userController from "../controllers/user.controllers.js";
-import { validate } from "../middlewares/validation.middlewares.js";
+import {
+  validate,
+  validateNumericId,
+} from "../middlewares/validation.middlewares.js";
 import { userSchema } from "../schema/user.schema.js";
 
 const router = Router();
@@ -19,8 +22,11 @@ router.get("/users", userController.findAllUsersController);
 
 // 3ª Rota
 // O ':id' é um parâmetro de rota OBRIGATÓRIO, que pode ser acessado no controller via 'req.params.id'
-router.get("/users/:id", userController.findUserByIdController);
-
-// 4ª Rota
+// O middleware 'validateNumericId' valida que o ID é um número inteiro positivo antes de invocar o controller
+router.get(
+  "/users/:id",
+  validateNumericId,
+  userController.findUserByIdController,
+);
 
 export default router;
