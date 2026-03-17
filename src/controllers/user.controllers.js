@@ -190,8 +190,56 @@ async function findUserByIdController(req, res) {
   }
 }
 
+/**
+ * Controller para atualizar um usuário.
+ * Recebe o ID via parâmetros e os dados a serem alterados via corpo da requisição.
+ * Utiliza o método .partial() do Zod na rota para permitir atualizações parciais.
+ */
+async function updateUserController(req, res) {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  try {
+    // O middleware 'validateNumericId' já converteu e validou o ID
+    const updatedUser = await userService.updateUserService(id, updateData);
+
+    return res.status(200).json({
+      message: "Usuário atualizado com sucesso!",
+      user: updatedUser,
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    safeLogError(error);
+    return res.status(500).json({ message: "Erro interno do servidor." });
+  }
+}
+
+/**
+ * Controller para excluir um usuário.
+ */
+async function deleteUserController(req, res) {
+  const { id } = req.params;
+
+  try {
+    // O middleware 'validateNumericId' já converteu e validou o ID
+    await userService.deleteUserService(id);
+    // Para DELETE, é comum retornar 204 No Content com corpo vazio, mas 200 com mensagem é mais explícito.
+    return res.status(200).json({ message: "Usuário excluído com sucesso!" });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    safeLogError(error);
+    return res.status(500).json({ message: "Erro interno do servidor." });
+  }
+}
+
 export default {
   createUserController,
   findAllUsersController,
   findUserByIdController,
+  updateUserController,
+  deleteUserController,
 };

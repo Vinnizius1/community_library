@@ -29,4 +29,21 @@ router.get(
   userController.findUserByIdController,
 );
 
+// 4ª Rota - Atualização (PATCH)
+// Usamos PATCH para atualizações parciais.
+// userSchema.partial() torna todos os campos do schema opcionais, o que é perfeito para updates.
+router.patch(
+  "/users/:id",
+  validateNumericId,
+  validate(userSchema.partial()),
+  userController.updateUserController,
+);
+
+// 5ª Rota - Exclusão (DELETE)
+router.delete(
+  "/users/:id",
+  validateNumericId,
+  userController.deleteUserController,
+);
+
 export default router;
