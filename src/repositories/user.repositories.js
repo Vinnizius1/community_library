@@ -150,6 +150,8 @@ async function findAllUsersRepository(limit = 100, offset = 0) {
  */
 async function updateUserRepository(id, userData) {
   // Whitelist de colunas permitidas para prevenir Mass Assignment / SQL Injection.
+  // Este é quando um hacker envia { isAdmin: true } no body esperando que o sistema atualize esse campo no banco.
+  // Seu código ignora qualquer campo que não esteja na whitelist.
   const ALLOWED_FIELDS = ["username", "email", "password", "avatar"];
 
   // Filtra os dados recebidos para incluir apenas campos permitidos e que não são undefined.
@@ -163,6 +165,8 @@ async function updateUserRepository(id, userData) {
   }
 
   // Constrói a cláusula SET dinamicamente: "username" = $1, "avatar" = $2, etc.
+  // Construir o UPDATE dinamicamente baseado apenas nos campos fornecidos é exatamente como ORMs como o Prisma fazem internamente.
+  // Você fez "na mão" com segurança total.
   const setClause = fields
     .map((key, index) => `"${key}" = $${index + 1}`)
     .join(", ");
@@ -185,7 +189,9 @@ async function updateUserRepository(id, userData) {
     }
     return result.rows[0];
   } catch (err) {
-    // Reutiliza o tratamento de erro para e-mail/username duplicado (unique constraint).
+    // Tratamento granular do erro 23505 (violação de unicidade) para fornecer mensagens específicas.
+    // Você diferencia users_email_key de users_username_key.
+    // Isso dá ao usuário uma mensagem precisa: "Esse e-mail já está em uso" vs "Esse username já está em uso", em vez de uma mensagem genérica.
     if (err.code === "23505") {
       if (err.constraint === "users_email_key") {
         throw new AppError("Este e-mail já está em uso.", 409);

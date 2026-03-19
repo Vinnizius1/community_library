@@ -12,6 +12,7 @@
 import userRepositories from "../repositories/user.repositories.js";
 import { AppError } from "../errors/AppError.js";
 import bcrypt from "bcrypt";
+import { generateJWT } from "./auth.service.js";
 
 /**
  * SERVIÇO DE CRIAÇÃO DE USUÁRIO
@@ -42,19 +43,17 @@ async function createUserService(newUser) {
   const createdUser =
     await userRepositories.createUserRepository(newUserWithHash);
 
-  /* 
-     Embora o Repository já use "RETURNING id, username..." (sem senha),
-     fazemos uma limpeza explícita aqui para garantir que o hash nunca vaze,
-     caso o Repository seja alterado no futuro.
-  */
-  const createdRow = Array.isArray(createdUser)
-    ? createdUser[0]
-    : createdUser?.rows?.[0] || createdUser;
-  if (!createdRow) {
+  if (!createdUser) {
     throw new AppError("User could not be created.", 500);
   }
-  const { password: _password, ...safeUser } = createdRow;
-  return safeUser;
+
+  // Gera o token com o ID do usuário recém-criado
+  const token = generateJWT(createdUser.id);
+
+  // Remove a senha (defesa extra) e retorna objeto imutável com o token
+  const { password: _password, ...safeUser } = createdUser;
+
+  return { ...safeUser, token };
 }
 
 /**

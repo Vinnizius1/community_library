@@ -26,4 +26,4 @@ function generateJWT(id) {
   }
 }
 
-export default { generateJWT };
+export { generateJWT };
