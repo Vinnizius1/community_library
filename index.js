@@ -12,6 +12,11 @@ app.use(express.json());
 app.use(userRouter);
 // Tem que ser EMBAIXO do express.json() para garantir que o corpo da requisição seja processado antes de chegar nas rotas.
 
-app.listen(3000, () => {
-  console.log("Server is running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+// O código acima é o ponto de entrada da aplicação, onde o servidor Express é configurado e iniciado.
+// Ele importa as rotas de usuário, configura o middleware para processar JSON e inicia o servidor na porta definida.

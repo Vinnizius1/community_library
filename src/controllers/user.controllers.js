@@ -102,6 +102,8 @@ function safeLogError(error, logger = null) {
 }
 
 async function createUserController(req, res) {
+  // Este controller recebe os dados do usuário do corpo da requisição (req.body),
+  // chama o serviço responsável pela criação do usuário e retorna uma resposta apropriada.
   const newUser = req.body;
 
   try {
