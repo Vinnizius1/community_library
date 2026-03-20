@@ -20,13 +20,19 @@ export function authMiddleware(req, res, next) {
     // 2. Separa "Bearer" do token em si
     const [scheme, token] = authHeader.split(" ");
 
-    // 3. Valida o formato (deve ser exatamente "Bearer <token>")
-    if (scheme !== "Bearer" || !token) {
+    // 3. Valida o formato (RFC 6750: scheme é case-insensitive)
+    // Aceita "Bearer", "bearer", "BEARER", etc.
+    if (scheme.toLowerCase() !== "bearer" || !token) {
       throw new AppError("Formato de token inválido. Use: Bearer <token>", 401);
     }
 
     // 4. Verifica assinatura e expiração — lança AppError se inválido
     const decoded = verifyJWT(token);
+
+    // Defesa em Profundidade: Garante que o token realmente contém o ID do usuário
+    if (!decoded.userId) {
+      throw new AppError("Token inválido: userId ausente.", 401);
+    }
 
     // 5. INJETA o userId no req para que controllers/services possam usar
     // req.userId agora está disponível em todas as rotas protegidas

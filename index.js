@@ -1,7 +1,7 @@
+import "dotenv/config"; // Carrega as variáveis de ambiente do arquivo .env logo no início
 import express from "express";
 import userRouter from "./src/routes/user.routes.js";
-// The variable userRouters is plural, but it represents a single express.Router() instance.
-// Convention typically uses singular form (userRouter) for clarity.
+import { errorHandler } from "./src/middlewares/errorHandler.middleware.js";
 
 const app = express();
 
@@ -12,11 +12,11 @@ app.use(express.json());
 app.use(userRouter);
 // Tem que ser EMBAIXO do express.json() para garantir que o corpo da requisição seja processado antes de chegar nas rotas.
 
+// O Error Handler DEVE ser o último app.use, mas ANTES do app.listen
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
-
-// O código acima é o ponto de entrada da aplicação, onde o servidor Express é configurado e iniciado.
-// Ele importa as rotas de usuário, configura o middleware para processar JSON e inicia o servidor na porta definida.

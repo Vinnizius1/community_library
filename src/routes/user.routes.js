@@ -25,9 +25,7 @@ router.post(
 // POST /auth/login — Autenticação de usuário existente
 // Fluxo: loginController → authService → Repository (busca com senha para bcrypt.compare)
 // Retorna: { user: {...}, token: "eyJ..." }
-import { loginController } from "../controllers/auth.controllers.js";
 router.post("/auth/login", loginController);
-
 // ============ ROTAS PROTEGIDAS (autenticação obrigatória) ============
 // O authMiddleware é aplicado a TODAS as rotas declaradas abaixo dele.
 // Ele valida o token JWT do header "Authorization: Bearer <token>".
