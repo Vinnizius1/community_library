@@ -29,8 +29,8 @@ export function authMiddleware(req, res, next) {
     // 4. Verifica assinatura e expiração — lança AppError se inválido
     const decoded = verifyJWT(token);
 
-    // Defesa em Profundidade: Garante que o token realmente contém o ID do usuário
-    if (!decoded.userId) {
+    // Defesa em Profundidade: Valida se o payload existe e contém o ID do usuário
+    if (!decoded || !decoded.userId) {
       throw new AppError("Token inválido: userId ausente.", 401);
     }
 

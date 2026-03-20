@@ -34,7 +34,7 @@ export function verifyJWT(token) {
     // Se o token for inválido ou expirado, jwt.verify lança um erro.
     // Traduzimos para AppError para manter o padrão da aplicação.
     // Log original error for debugging (avoid exposing to client)
-    console.debug("JWT verification failed:", err.message);
+    console.debug("JWT verification failed:", err.name, err.message);
     throw new AppError("Token inválido ou expirado.", 401);
   }
 }
