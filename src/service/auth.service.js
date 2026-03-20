@@ -1,29 +1,41 @@
-import jwt from "jsonwebtoken";
+// O Chef de Cozinha da autenticação. Ele aplica as regras de negócio do login:
+
+import bcrypt from "bcrypt";
+import { generateJWT } from "../utils/jwt.utils.js";
+import userRepositories from "../repositories/user.repositories.js";
+import { AppError } from "../errors/AppError.js";
 
 /**
- * Gera um token JWT para um usuário autenticado.
- * @param {number} id - O ID do usuário
- * @returns {string} - O token JWT assinado
+ * REGRA DE SEGURANÇA CRÍTICA: Mensagem genérica proposital.
+ * Nunca diga se foi o e-mail ou a senha que está errado.
+ * Se um atacante sabe que o e-mail existe, ele só precisa quebrar a senha.
  */
-function generateJWT(id) {
-  // Validação básica do ID do usuário para garantir que seja um número ou string válida.
-  if (!id || (typeof id !== "number" && typeof id !== "string")) {
-    throw new Error("Invalid user ID");
+const INVALID_CREDENTIALS_MSG = "E-mail ou senha inválidos.";
+
+async function loginService({ email, password }) {
+  // 1. BUSCA: Precisamos do hash da senha para comparar — usamos a função de auth
+  const user = await userRepositories.findUserByEmailForAuthRepository(email);
+
+  // 2. REGRA DE NEGÓCIO: Usuário não existe?
+  // Retornamos a mesma mensagem genérica de senha errada (segurança!)
+  if (!user) {
+    throw new AppError(INVALID_CREDENTIALS_MSG, 401);
   }
 
-  // Verificação de configuração do segredo JWT para evitar erros de runtime.
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET is not configured");
+  // 3. SEGURANÇA: Compara a senha enviada com o hash salvo no banco
+  // bcrypt.compare faz o hash da senha digitada e compara com o hash salvo
+  const passwordMatch = await bcrypt.compare(password, user.password);
+
+  if (!passwordMatch) {
+    throw new AppError(INVALID_CREDENTIALS_MSG, 401);
   }
 
-  // The jwt.sign operation can fail (e.g., invalid secret format, serialization errors).
-  // Without error handling, failures will propagate unexpectedly.
-  // Wrapping in a try-catch block allows us to handle such errors gracefully and provide meaningful feedback.
-  try {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-  } catch (error) {
-    throw new Error("Failed to generate JWT");
-  }
+  // 4. TOKEN: Credenciais válidas — gera o crachá digital
+  const token = generateJWT(user.id);
+
+  // 5. RESPOSTA: Retorna dados públicos + token (sem a senha!)
+  const { password: _password, ...safeUser } = user;
+  return { user: safeUser, token };
 }
 
-export { generateJWT };
+export default { loginService };
