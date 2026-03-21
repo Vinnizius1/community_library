@@ -21,10 +21,7 @@ async function initDb() {
 
     console.log("✅ Tabela 'users' pronta para uso!");
   } catch (error) {
-    console.error(
-      "❌ Erro fatal ao inicializar banco de dados:",
-      error.message,
-    );
+    console.error("❌ Erro fatal ao inicializar banco de dados:", error);
     // Em produção, se o banco não subir, a aplicação deve parar.
     throw error;
   }

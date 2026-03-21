@@ -10,7 +10,8 @@ const app = express();
 // Como initDb é assíncrono, o ideal seria usar um await,
 // mas para este nível de projeto, chamá-lo aqui já resolve:
 initDb().catch((err) => {
-  console.error("Aplicação não pôde iniciar devido ao banco de dados.");
+  console.error("Aplicação não pôde iniciar devido ao banco de dados:", err);
+  console.log("Saindo...");
   process.exit(1);
 });
 
