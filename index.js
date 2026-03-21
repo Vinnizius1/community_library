@@ -33,8 +33,14 @@ async function bootstrap() {
   try {
     await initDb();
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
+    });
+
+    // Captura erros de inicialização do servidor (ex: porta em uso - EADDRINUSE)
+    server.on("error", (err) => {
+      console.error("❌ Erro ao iniciar servidor Express:", err);
+      process.exit(1);
     });
   } catch (err) {
     console.error("Aplicação não pôde iniciar devido ao banco de dados:", err);
@@ -43,14 +49,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-
-/* 
-O que mudou e por quê
-1. PORT subiu para o topo — constantes de configuração ficam antes da lógica. Organização.
-
-2. app.use() fora do bootstrap — os middlewares e rotas são configuração estática, não dependem do banco. Só o listen precisa esperar o initDb.
-
-3. try/catch em vez de .catch() — dentro de uma função async, o try/catch é mais legível e o Rabbit prefere esse padrão por ser consistente com o resto do código.
-
-4. initDb e app.listen agora têm ordem garantida — o servidor só abre depois que o banco confirmar conexão. Esse era o único risco real do código anterior.
-*/
