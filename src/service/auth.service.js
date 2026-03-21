@@ -14,8 +14,7 @@ const INVALID_CREDENTIALS_MSG = "E-mail ou senha inválidos.";
 
 // Hash dummy para evitar "Timing Attacks".
 // Garante que o bcrypt sempre tenha trabalho a fazer, equalizando o tempo de resposta.
-// Hash fixo pré-computado. Nunca vai bater com nenhuma senha real.
-// Gerado uma vez com: bcrypt.hashSync("dummy", 10)
+// Hash fixo pré-computado para comparação constante. Nunca corresponde a credenciais reais.
 const DUMMY_HASH =
   "$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJ204sNihdk";
 
