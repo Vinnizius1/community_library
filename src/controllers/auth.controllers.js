@@ -3,7 +3,7 @@
 import authService from "../service/auth.service.js";
 
 // Adicionamos o parâmetro 'next' para passar erros adiante
-async function loginController(req, res, next) {
+export async function loginController(req, res, next) {
   try {
     const result = await authService.loginService(req.body);
 
@@ -14,5 +14,3 @@ async function loginController(req, res, next) {
     next(error);
   }
 }
-
-export default { loginController };

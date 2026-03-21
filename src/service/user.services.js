@@ -12,7 +12,7 @@
 import userRepositories from "../repositories/user.repositories.js";
 import { AppError } from "../errors/AppError.js";
 import bcrypt from "bcrypt";
-import { generateJWT } from "./auth.service.js";
+import { generateJWT } from "../utils/jwt.utils.js";
 
 /**
  * SERVIÇO DE CRIAÇÃO DE USUÁRIO
