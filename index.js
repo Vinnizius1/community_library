@@ -7,6 +7,8 @@ import initDb from "./src/config/init-db.js"; // Função para inicializar a con
 const app = express(); // Cria uma instância do Express, que é o framework web utilizado para criar o servidor HTTP
 const PORT = process.env.PORT || 3000; // PORT em processo de ambiente ("process.env.PORT"), com fallback para 3000 se não estiver definido.
 
+let server; // Escopo global para permitir o encerramento gracioso
+
 // ============ CONFIGURAÇÃO DO SERVIDOR ============
 // Middleware para parsear JSON no corpo das requisições.
 // Popula req.body com os dados já convertidos para objeto JS.
@@ -14,6 +16,11 @@ const PORT = process.env.PORT || 3000; // PORT em processo de ambiente ("process
 app.use(express.json());
 
 // ============ ROTAS ============
+// Rota de Healthcheck para monitoramento
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
+});
+
 app.use(userRouter);
 
 // ============ TRATAMENTO DE ERROS ============
@@ -33,7 +40,7 @@ async function bootstrap() {
   try {
     await initDb();
 
-    const server = app.listen(PORT, () => {
+    server = app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });
 
@@ -48,4 +55,26 @@ async function bootstrap() {
   }
 }
 
+// ============ ENCERRAMENTO GRACIOSO (Graceful Shutdown) ============
+function gracefulShutdown(signal) {
+  console.log(`\n${signal} recebido. Encerrando processos...`);
+
+  if (server) {
+    server.close(() => {
+      console.log("Servidor HTTP encerrado com sucesso.");
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
+
+  // Força o encerramento após 10 segundos se o fechamento limpo falhar
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
 bootstrap();
+
+export default app;
