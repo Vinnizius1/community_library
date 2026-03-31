@@ -7,6 +7,7 @@ import { AppError } from "../errors/AppError.js";
  * @returns {string} - Token JWT assinado
  */
 export function generateJWT(userId) {
+  // Se a variável de ambiente JWT_SECRET não estiver configurada, lançamos um erro.
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET environment variable is not configured");
   }

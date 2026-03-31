@@ -1,11 +1,11 @@
 import "dotenv/config"; // Carrega as variáveis de ambiente do arquivo .env logo no início
 import express from "express";
 import userRouter from "./src/routes/user.routes.js";
-import { errorHandler } from "./src/middlewares/errorHandler.middleware.js";
-import initDb from "./src/config/init-db.js";
+import { errorHandler } from "./src/middlewares/errorHandler.middleware.js"; // Tratamento centralizado de erros para capturar e responder a erros de forma consistente
+import initDb from "./src/config/init-db.js"; // Função para inicializar a conexão com o banco de dados
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const app = express(); // Cria uma instância do Express, que é o framework web utilizado para criar o servidor HTTP
+const PORT = process.env.PORT || 3000; // PORT em processo de ambiente ("process.env.PORT"), com fallback para 3000 se não estiver definido.
 
 // ============ CONFIGURAÇÃO DO SERVIDOR ============
 // Middleware para parsear JSON no corpo das requisições.

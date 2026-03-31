@@ -66,6 +66,7 @@ async function findAllUsersService(limit, offset) {
   const users = await userRepositories.findAllUsersRepository(limit, offset);
   return users.map(({ password, ...safeUser }) => safeUser);
 }
+
 /**
  * Serviço para encontrar um usuário por ID.
  * @param {number} id - ID do usuário

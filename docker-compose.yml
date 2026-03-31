@@ -1,4 +1,23 @@
 services:
+  app:
+    build: .
+    container_name: community_library_api
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - PORT=3000
+      - DB_USER=dev_user
+      - DB_PASSWORD=dev_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=community_library
+      - JWT_SECRET=sua_chave_secreta_aqui
+    depends_on:
+      - db
+
   db:
     image: postgres:15
     container_name: community_library_db
