@@ -128,11 +128,11 @@ async function findUserByIdRepository(id) {
 
 /**
  * Lista usuários com paginação para evitar sobrecarga.
- * @param {number} limit - Máximo de registros a retornar (Default: 100)
- * @param {number} offset - Quantos registros pular (Default: 0)
+ * @param {number} limit - Máximo de registros a retornar.
+ * @param {number} offset - Quantos registros pular.
  * @returns {Promise<Array>} - Array de usuários
  */
-async function findAllUsersRepository(limit = 100, offset = 0) {
+async function findAllUsersRepository(limit, offset) {
   const { safeLimit, safeOffset } = sanitizePagination(limit, offset);
 
   const query = `

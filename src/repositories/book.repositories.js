@@ -36,7 +36,7 @@ async function createBookRepository(newBook) {
  * @param {number} offset - Quantidade de registros a pular.
  * @returns {Promise<Array>} - Lista de livros.
  */
-async function findAllBooksRepository(limit = 100, offset = 0) {
+async function findAllBooksRepository(limit, offset) {
   const { safeLimit, safeOffset } = sanitizePagination(limit, offset);
 
   const query = `
@@ -130,9 +130,11 @@ async function deleteBookRepository(id) {
 /**
  * Busca livros por título (útil para pesquisa).
  * @param {string} title - Termo de busca.
+ * @param {number} limit - Quantidade de registros.
+ * @param {number} offset - Quantidade de registros a pular.
  * @returns {Promise<Array>}
  */
-async function searchBooksByTitleRepository(title, limit = 100, offset = 0) {
+async function searchBooksByTitleRepository(title, limit, offset) {
   const { safeLimit, safeOffset } = sanitizePagination(limit, offset);
 
   const query = `
