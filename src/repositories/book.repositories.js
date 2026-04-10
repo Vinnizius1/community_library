@@ -36,8 +36,12 @@ async function createBookRepository(newBook) {
  * @returns {Promise<Array>} - Lista de livros.
  */
 async function findAllBooksRepository(limit = 100, offset = 0) {
-  const safeLimit = Math.min(Math.max(1, limit), 1000); // Garante entre 1 e 1000
-  const safeOffset = Math.max(0, offset); // Garante que não seja negativo
+  // Validação ultra-defensiva: garante tipo inteiro e limites seguros
+  const safeLimit = Math.min(
+    Math.max(1, Number.isInteger(limit) ? limit : 10),
+    1000,
+  );
+  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
 
   const query = `
     SELECT id, title, author, description, image, user_id 
@@ -133,9 +137,12 @@ async function deleteBookRepository(id) {
  * @returns {Promise<Array>}
  */
 async function searchBooksByTitleRepository(title, limit = 100, offset = 0) {
-  // Add pagination to prevent unbounded result sets.
-  const safeLimit = Math.min(Math.max(1, limit), 1000);
-  const safeOffset = Math.max(0, offset);
+  // Repetimos a lógica defensiva para a busca
+  const safeLimit = Math.min(
+    Math.max(1, Number.isInteger(limit) ? limit : 10),
+    1000,
+  );
+  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
 
   const query = `
     SELECT id, title, author, description, image, user_id 
@@ -147,7 +154,6 @@ async function searchBooksByTitleRepository(title, limit = 100, offset = 0) {
   const result = await db.query(query, [`%${title}%`, safeLimit, safeOffset]);
   return result.rows;
 }
-
 export default {
   createBookRepository,
   findAllBooksRepository,

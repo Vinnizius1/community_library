@@ -145,13 +145,11 @@ async function createUserController(req, res) {
  * @returns {Promise<Response>} - Resposta HTTP com a lista de usuários ou mensagem de erro
  */
 async function findAllUsersController(req, res) {
-  const { limit = 10, offset = 0 } = req.query;
+  const { limit, offset } = req.query; // Já validados e tipados pelo middleware
 
   try {
-    const users = await userService.findAllUsersService(
-      Number(limit),
-      Number(offset),
-    );
+    // Os valores de limit e offset já são números validados pelo middleware validatePagination
+    const users = await userService.findAllUsersService(limit, offset);
     const safeUsers = users.map(({ password, ...safeUser }) => safeUser);
     return res.status(200).json({ users: safeUsers });
   } catch (error) {
