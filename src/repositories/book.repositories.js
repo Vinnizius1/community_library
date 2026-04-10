@@ -1,20 +1,6 @@
 import db from "../config/database.js";
 import { AppError } from "../errors/AppError.js";
-
-/**
- * Helper interno para sanitizar parâmetros de paginação de forma ultra-defensiva.
- * @param {any} limit - Valor bruto do limite.
- * @param {any} offset - Valor bruto do offset.
- * @returns {{ safeLimit: number, safeOffset: number }}
- */
-function sanitizePagination(limit, offset) {
-  const safeLimit = Math.min(
-    Math.max(1, Number.isInteger(limit) ? limit : 10),
-    1000,
-  );
-  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
-  return { safeLimit, safeOffset };
-}
+import { sanitizePagination } from "../utils/pagination.utils.js";
 
 /**
  * Insere um novo livro no banco de dados.

@@ -1,5 +1,6 @@
 import db from "../config/database.js";
 import { AppError } from "../errors/AppError.js";
+import { sanitizePagination } from "../utils/pagination.utils.js";
 
 /**
  * PADRÃO DE MERCADO: Data Access Layer (DAL)
@@ -132,12 +133,7 @@ async function findUserByIdRepository(id) {
  * @returns {Promise<Array>} - Array de usuários
  */
 async function findAllUsersRepository(limit = 100, offset = 0) {
-  // Aplicando a mesma lógica ultra-defensiva do repositório de livros
-  const safeLimit = Math.min(
-    Math.max(1, Number.isInteger(limit) ? limit : 10),
-    1000,
-  );
-  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
+  const { safeLimit, safeOffset } = sanitizePagination(limit, offset);
 
   const query = `
     SELECT id, username, email, avatar FROM users
