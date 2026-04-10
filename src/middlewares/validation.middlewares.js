@@ -73,23 +73,25 @@ const validateNumericId = (req, res, next) => {
 
 // Schema para validação de parâmetros de paginação (limit e offset)
 // Por exemplo, em uma rota GET /users?limit=10&offset=20, queremos garantir que limit e offset sejam números válidos.
-const paginationSchema = z.object({
-  limit: z.coerce
-    .number({
-      invalid_type_error: "Limit must be a valid number",
-    })
-    .int({ message: "Limit must be an integer" })
-    .min(1, { message: "Limit must be at least 1" })
-    .max(1000, { message: "Limit cannot exceed 1000" }) // Limite defensivo
-    .default(10), // Valor padrão se não for fornecido
-  offset: z.coerce
-    .number({
-      invalid_type_error: "Offset must be a valid number",
-    })
-    .int({ message: "Offset must be an integer" })
-    .min(0, { message: "Offset must be at least 0" })
-    .default(0), // Valor padrão se não for fornecido
-});
+const paginationSchema = z
+  .object({
+    limit: z.coerce
+      .number({
+        invalid_type_error: "Limit must be a valid number",
+      })
+      .int({ message: "Limit must be an integer" })
+      .min(1, { message: "Limit must be at least 1" })
+      .max(1000, { message: "Limit cannot exceed 1000" }) // Limite defensivo
+      .default(10), // Valor padrão se não for fornecido
+    offset: z.coerce
+      .number({
+        invalid_type_error: "Offset must be a valid number",
+      })
+      .int({ message: "Offset must be an integer" })
+      .min(0, { message: "Offset must be at least 0" })
+      .default(0), // Valor padrão se não for fornecido
+  })
+  .passthrough(); // Permite que outros parâmetros de query não definidos no schema sejam mantidos
 
 // Valida os parâmetros em "paginationSchema" e, se forem válidos, os atribui de volta a req.query para uso posterior no controller.
 // Por exemplo, se os parâmetros forem inválidos, como limit=-5 ou offset=abc, o middleware retornará um 400 com os erros de validação detalhados.
