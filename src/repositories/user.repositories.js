@@ -132,12 +132,19 @@ async function findUserByIdRepository(id) {
  * @returns {Promise<Array>} - Array de usuários
  */
 async function findAllUsersRepository(limit = 100, offset = 0) {
+  // Aplicando a mesma lógica ultra-defensiva do repositório de livros
+  const safeLimit = Math.min(
+    Math.max(1, Number.isInteger(limit) ? limit : 10),
+    1000,
+  );
+  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
+
   const query = `
     SELECT id, username, email, avatar FROM users
     ORDER BY id
     LIMIT $1 OFFSET $2
   `;
-  const result = await db.query(query, [limit, offset]);
+  const result = await db.query(query, [safeLimit, safeOffset]);
   return result.rows;
 }
 
