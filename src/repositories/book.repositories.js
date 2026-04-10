@@ -36,13 +36,16 @@ async function createBookRepository(newBook) {
  * @returns {Promise<Array>} - Lista de livros.
  */
 async function findAllBooksRepository(limit = 100, offset = 0) {
+  const safeLimit = Math.min(Math.max(1, limit), 1000); // Garante entre 1 e 1000
+  const safeOffset = Math.max(0, offset); // Garante que não seja negativo
+
   const query = `
     SELECT id, title, author, description, image, user_id 
     FROM books
     ORDER BY id DESC
     LIMIT $1 OFFSET $2
   `;
-  const result = await db.query(query, [limit, offset]);
+  const result = await db.query(query, [safeLimit, safeOffset]);
   return result.rows;
 }
 
@@ -93,18 +96,21 @@ async function updateBookRepository(id, bookData) {
     RETURNING id, title, author, description, image, user_id
   `;
 
+  let result;
   try {
-    const result = await db.query(query, [...values, id]);
-    if (result.rowCount === 0) {
-      throw new AppError("Livro não encontrado.", 404);
-    }
-    return result.rows[0];
+    result = await db.query(query, [...values, id]);
   } catch (err) {
     if (err.code === "23505") {
       throw new AppError("Este título já está em uso por outro livro.", 409);
     }
     throw err;
   }
+
+  if (result.rowCount === 0) {
+    throw new AppError("Livro não encontrado.", 404);
+  }
+
+  return result.rows[0];
 }
 
 /**
@@ -126,15 +132,19 @@ async function deleteBookRepository(id) {
  * @param {string} title - Termo de busca.
  * @returns {Promise<Array>}
  */
-async function searchBooksByTitleRepository(title) {
+async function searchBooksByTitleRepository(title, limit = 100, offset = 0) {
+  // Add pagination to prevent unbounded result sets.
+  const safeLimit = Math.min(Math.max(1, limit), 1000);
+  const safeOffset = Math.max(0, offset);
+
   const query = `
     SELECT id, title, author, description, image, user_id 
     FROM books 
     WHERE title ILIKE $1
+    ORDER BY id DESC
+    LIMIT $2 OFFSET $3
   `;
-  // O ILIKE do Postgres busca ignorando maiúsculas/minúsculas.
-  // O % ao redor permite buscar o termo em qualquer parte da string.
-  const result = await db.query(query, [`%${title}%`]);
+  const result = await db.query(query, [`%${title}%`, safeLimit, safeOffset]);
   return result.rows;
 }
 
