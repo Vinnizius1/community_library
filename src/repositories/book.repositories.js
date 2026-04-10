@@ -2,6 +2,21 @@ import db from "../config/database.js";
 import { AppError } from "../errors/AppError.js";
 
 /**
+ * Helper interno para sanitizar parâmetros de paginação de forma ultra-defensiva.
+ * @param {any} limit - Valor bruto do limite.
+ * @param {any} offset - Valor bruto do offset.
+ * @returns {{ safeLimit: number, safeOffset: number }}
+ */
+function sanitizePagination(limit, offset) {
+  const safeLimit = Math.min(
+    Math.max(1, Number.isInteger(limit) ? limit : 10),
+    1000,
+  );
+  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
+  return { safeLimit, safeOffset };
+}
+
+/**
  * Insere um novo livro no banco de dados.
  * @param {Object} newBook - Dados do livro (title, author, description, image, userId).
  * @returns {Promise<Object>} - O livro criado.
@@ -36,12 +51,7 @@ async function createBookRepository(newBook) {
  * @returns {Promise<Array>} - Lista de livros.
  */
 async function findAllBooksRepository(limit = 100, offset = 0) {
-  // Validação ultra-defensiva: garante tipo inteiro e limites seguros
-  const safeLimit = Math.min(
-    Math.max(1, Number.isInteger(limit) ? limit : 10),
-    1000,
-  );
-  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
+  const { safeLimit, safeOffset } = sanitizePagination(limit, offset);
 
   const query = `
     SELECT id, title, author, description, image, user_id 
@@ -137,12 +147,7 @@ async function deleteBookRepository(id) {
  * @returns {Promise<Array>}
  */
 async function searchBooksByTitleRepository(title, limit = 100, offset = 0) {
-  // Repetimos a lógica defensiva para a busca
-  const safeLimit = Math.min(
-    Math.max(1, Number.isInteger(limit) ? limit : 10),
-    1000,
-  );
-  const safeOffset = Math.max(0, Number.isInteger(offset) ? offset : 0);
+  const { safeLimit, safeOffset } = sanitizePagination(limit, offset);
 
   const query = `
     SELECT id, title, author, description, image, user_id 
